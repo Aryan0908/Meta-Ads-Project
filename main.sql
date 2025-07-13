@@ -78,3 +78,77 @@ WHERE
 GROUP BY asets.placement
 ORDER BY purchase DESC
 LIMIT 1;
+
+-- What is the conversion funnel breakdown by campaign?
+With default_table AS (
+SELECT
+	c.campaign_name,
+	SUM(p.view_content) AS view_content,
+	SUM(p.add_to_cart) AS add_to_cart,
+	SUM(p.initiate_checkout) AS initiate_checkout,
+	SUM(p.purchase) AS purchase
+FROM performance p
+JOIN ads a ON a.ad_id = p.ad_id
+JOIN adsets asets ON asets.adset_id = a.adset_id
+JOIN campaigns c ON c.campaign_id = asets.campaign_id
+WHERE
+	c.objective = 'conversions'
+GROUP BY campaign_name
+ORDER BY campaign_name DESC
+),
+view_content_tbl AS (
+SELECT
+	campaign_name,
+	'View Content' AS conversion_event,
+	view_content AS total_events
+FROM default_table
+),
+atc_tbl AS (
+SELECT
+	campaign_name,
+	'Add To Cart' AS conversion_event,
+	add_to_cart AS total_events
+FROM default_table
+),
+initiate_checkout_tbl AS (
+SELECT
+	campaign_name,
+	'Initiate Checkout' AS conversion_event,
+	initiate_checkout AS total_events
+FROM default_table
+),
+purchase_tbl AS (
+SELECT
+	campaign_name,
+	'Purchase' AS conversion_event,
+	purchase AS total_events
+FROM default_table
+),
+new_tbl AS (
+SELECT campaign_name, conversion_event, total_events, 
+COALESCE(
+	LAG(total_events) OVER (PARTITION BY campaign_name ORDER BY total_events DESC),
+	0) AS lag_col 
+FROM
+(SELECT * FROM view_content_tbl
+UNION ALL
+SELECT * FROM atc_tbl
+UNION ALL
+SELECT * FROM initiate_checkout_tbl
+UNION ALL
+SELECT * FROM purchase_tbl
+ORDER BY campaign_name DESC, total_events DESC)
+)
+
+SELECT 
+	campaign_name,
+	conversion_event,
+	total_events,
+	CASE
+	     WHEN lag_col = 0 THEN 0
+	     ELSE ROUND(((lag_col - total_events)*100.00/lag_col),2)
+	END AS drop_off_rate_percnt
+
+FROM new_tbl
+
+
