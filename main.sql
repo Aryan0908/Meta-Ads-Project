@@ -151,4 +151,15 @@ SELECT
 
 FROM new_tbl
 
-
+-- What is the average cost per lead (CPL) by campaign?
+SELECT 
+    c.campaign_name,
+    ROUND(SUM(p.cost)::numeric / NULLIF(SUM(p.lead), 0), 2) AS avg_cpl
+FROM performance p
+JOIN ads a ON a.ad_id = p.ad_id
+JOIN adsets asets ON asets.adset_id = a.adset_id
+JOIN campaigns c ON c.campaign_id = asets.campaign_id
+WHERE 
+  c.objective = 'leads'
+GROUP BY c.campaign_name
+ORDER BY avg_cpl ASC;
