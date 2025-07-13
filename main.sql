@@ -163,3 +163,18 @@ WHERE
   c.objective = 'leads'
 GROUP BY c.campaign_name
 ORDER BY avg_cpl ASC;
+
+-- Which age group and gender combination results in the most form views for lead campaigns?
+SELECT 
+    asets.age_range,
+    asets.gender,
+    SUM(p.form_view) AS total_form_views
+FROM performance p
+JOIN ads a ON a.ad_id = p.ad_id
+JOIN adsets asets ON asets.adset_id = a.adset_id
+JOIN campaigns c ON c.campaign_id = asets.campaign_id
+WHERE c.objective = 'leads'
+GROUP BY asets.age_range, asets.gender
+ORDER BY total_form_views DESC
+LIMIT 1;
+
