@@ -246,8 +246,63 @@ FROM ranked_creatives
 WHERE rank_num = 1
 
 
-Rolling 7-Day Average ROAS
-Objective(s): conversions, traffic.
+-- Rolling 7-Day Average ROAS
+WITH my_cte AS (SELECT
+  c.campaign_id,
+  p.date,
+  (
+    SUM(p.revenue) OVER win
+    / NULLIF(SUM(p.cost)    OVER win, 0)
+  ) * 100 AS rolling_roas_pct
+FROM performance p
+JOIN ads a
+ON a.ad_id = p.ad_id
+JOIN adsets s
+ON s.adset_id = a.adset_id
+JOIN campaigns c
+ON c.campaign_id = s.campaign_id
+WHERE 
+c.objective IN('conversions','traffic') AND p.revenue > 0
+WINDOW win AS (
+  PARTITION BY c.campaign_id
+  ORDER BY p.date
+  ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+)),
+
+all_rolling_avgs AS (
+SELECT
+campaign_id,
+date,
+AVG(rolling_roas_pct) AS roas,
+LAG(AVG(rolling_roas_pct),7) OVER (PARTITION BY campaign_id ORDER BY date ASC) AS prev_roas,
+ROW_NUMBER() OVER (PARTITION BY campaign_id ORDER BY date) AS row_num
+FROM my_cte
+GROUP BY campaign_id, date
+),
+
+max_ranks AS (
+SELECT 
+		campaign_id,
+		MAX(row_num) OVER (PARTITION BY campaign_id) AS row_num
+FROM all_rolling_avgs
+
+
+)
+
+SELECT
+	c.campaign_id,
+	r.date,
+	ROUND(((roas-prev_roas)/prev_roas),2)*100 AS seven_dayd_roas_change
+FROM all_rolling_avgs AS r
+JOIN (
+SELECT campaign_id, row_num FROM max_ranks GROUP BY campaign_id, row_num
+) AS c
+ON r.campaign_id = c.campaign_id AND r.row_num = c.row_num
+WHERE 
+	prev_roas IS NOT NULL
+
+
+
 
 Attribution Breakdown for Purchases
 Objective(s): conversions.
