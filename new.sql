@@ -275,40 +275,29 @@ campaign_id,
 date,
 AVG(rolling_roas_pct) AS roas,
 LAG(AVG(rolling_roas_pct),7) OVER (PARTITION BY campaign_id ORDER BY date ASC) AS prev_roas,
-ROW_NUMBER() OVER (PARTITION BY campaign_id ORDER BY date) AS row_num
+ROW_NUMBER() OVER (PARTITION BY campaign_id ORDER BY date DESC) AS row_num
 FROM my_cte
 GROUP BY campaign_id, date
-),
-
-max_ranks AS (
-SELECT 
-		campaign_id,
-		MAX(row_num) OVER (PARTITION BY campaign_id) AS row_num
-FROM all_rolling_avgs
-
-
 )
 
 SELECT
-	c.campaign_id,
+	r.campaign_id,
 	r.date,
 	ROUND(((roas-prev_roas)/prev_roas),2)*100 AS seven_dayd_roas_change
 FROM all_rolling_avgs AS r
-JOIN (
-SELECT campaign_id, row_num FROM max_ranks GROUP BY campaign_id, row_num
-) AS c
-ON r.campaign_id = c.campaign_id AND r.row_num = c.row_num
 WHERE 
 	prev_roas IS NOT NULL
+	AND row_num = 1
 
 
 
 
-Attribution Breakdown for Purchases
-Objective(s): conversions.
+Click-Through vs. View-Through Attribution (keep)
+For conversion campaigns, split purchases into click-through and view-through conversions and show each as a percentage of total purchases.
 
-Geographic Performance Comparison
-Objective(s): All campaign objectives (e.g., conversions, leads, traffic, engagement, reach, app_installs).
+Cross-Objective Creative Lift (new)
+Within conversion campaigns, compare each creative’s CTR in its first 7 days vs. its last 7 days. Identify creatives whose CTR jumped by ≥ 15 %.
+Skills: filtered window frames (e.g. ROWS BETWEEN UNBOUNDED PRECEDING AND 6 FOLLOWING vs. BETWEEN 6 PRECEDING AND CURRENT ROW), CASE for lift.
 
-CPC Anomaly Detection
-Objective(s): All campaign objectives (e.g., conversions, leads, traffic, engagement, reach, app_installs).
+CPC Anomaly Detection (keep)
+Calculate each adset’s daily CPC z-score and flag days with |z| > 3 and cost > daily_budget. Return adset_id, date, CPC, z-score, and overspend flag.
