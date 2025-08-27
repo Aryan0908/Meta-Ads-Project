@@ -2,7 +2,7 @@
 SELECT 
 	c.objective,
 	SUM(p.clicks) AS total_clicks,
-	SUM(p.cost) AS total_cost
+	ROUND(SUM(p.cost),2) AS total_cost
 FROM campaigns AS c
 JOIN adsets AS s
 	ON s.campaign_id = c.campaign_id
@@ -17,7 +17,7 @@ ORDER BY total_clicks DESC
 -- Top 3 Campaigns by Revenue
 SELECT 
 	c.campaign_name,
-	SUM(p.revenue) AS total_revenue
+	ROUND(SUM(p.revenue),2) AS total_revenue
 FROM campaigns AS c
 JOIN adsets AS s
 	ON s.campaign_id = c.campaign_id
@@ -35,7 +35,7 @@ LIMIT 3
 -- CTR by Age Range for Traffic Campaigns
 SELECT 
 	s.age_range,
-	ROUND(AVG(p.ctr),2) AS avg_ctr
+	ROUND(AVG(p.ctr),2) AS avg_ctr_perc
 FROM campaigns AS c
 JOIN adsets AS s
 	ON s.campaign_id = c.campaign_id
@@ -179,7 +179,8 @@ SELECT
 FROM new_tbl
 
 	
--- Campaigns Exceeding Daily BudgetSELECT
+-- Campaigns Exceeding Daily Budget
+SELECT
   s.campaign_id,
   p.date,
   SUM(p.cost)        AS total_spend,
@@ -283,19 +284,13 @@ GROUP BY campaign_id, date
 SELECT
 	r.campaign_id,
 	r.date,
-	ROUND(((roas-prev_roas)/prev_roas),2)*100 AS seven_dayd_roas_change
+	ROUND(((roas-prev_roas)/prev_roas),2)*100 AS seven_day_roas_change
 FROM all_rolling_avgs AS r
 WHERE 
 	prev_roas IS NOT NULL
 	AND row_num = 1
 
-
-
-
-Click-Through vs. View-Through Attribution (keep)
-For conversion campaigns, split purchases into click-through and view-through conversions and show each as a percentage of total purchases.
-
-Cross-Objective Creative Lift (new)
+-- Cross-Objective Creative Lift (new)
 WITH my_cte AS (
 SELECT 
 	a.creative_name,
@@ -351,5 +346,53 @@ FROM filtered_dates
 WHERE prev_rolling_avg IS NOT NULL
 
 
-CPC Anomaly Detection (keep)
-Calculate each adset’s daily CPC z-score and flag days with |z| > 3 and cost > daily_budget. Return adset_id, date, CPC, z-score, and overspend flag.
+-- CPC Anomaly Detection (keep)
+-- Calculate each adset’s daily CPC z-score and flag days with |z| > 3 and cost > daily_budget. Return adset_id, date, CPC, z-score, and overspend flag.
+
+WITH standarad_dev AS (
+	SELECT
+	s.adset_id,
+	p.date,
+	ROUND(((p.cpc - AVG(p.cpc) OVER (PARTITION BY s.adset_id))/STDDEV(p.cpc) OVER (PARTITION BY s.adset_id)),2) AS z_score
+
+	FROM performance p
+	JOIN ads a
+		ON a.ad_id = p.ad_id
+	JOIN adsets s
+		ON s.adset_id = a.adset_id
+	JOIN campaigns c
+		ON c.campaign_id = s.campaign_id
+),
+
+overspend AS (
+	SELECT
+	s.adset_id,
+	p.date,
+	s.daily_budget,
+	SUM(p.cost) AS daily_cost
+	FROM performance p
+	JOIN ads a
+		ON a.ad_id = p.ad_id
+	JOIN adsets s
+		ON s.adset_id = a.adset_id
+	JOIN campaigns c
+		ON c.campaign_id = s.campaign_id
+	GROUP BY 
+		s.adset_id,
+		p.date,
+		s.daily_budget
+)
+
+SELECT 
+	stdev.adset_id,
+	stdev.date,
+	stdev.z_score,
+	os.daily_budget,
+	os.daily_cost
+FROM standarad_dev AS stdev
+JOIN overspend os
+	ON os.adset_id = stdev.adset_id AND os.date = stdev.date
+WHERE
+	z_score > 3
+ORDER BY adset_id, date
+
