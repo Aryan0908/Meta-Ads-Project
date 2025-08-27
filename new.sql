@@ -296,8 +296,60 @@ Click-Through vs. View-Through Attribution (keep)
 For conversion campaigns, split purchases into click-through and view-through conversions and show each as a percentage of total purchases.
 
 Cross-Objective Creative Lift (new)
-Within conversion campaigns, compare each creative’s CTR in its first 7 days vs. its last 7 days. Identify creatives whose CTR jumped by ≥ 15 %.
-Skills: filtered window frames (e.g. ROWS BETWEEN UNBOUNDED PRECEDING AND 6 FOLLOWING vs. BETWEEN 6 PRECEDING AND CURRENT ROW), CASE for lift.
+WITH my_cte AS (
+SELECT 
+	a.creative_name,
+	p.date,
+	AVG(p.ctr) OVER (PARTITION BY a.creative_name ORDER BY p.date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW ) AS avg_ctr
+FROM performance p
+JOIN ads a
+ON a.ad_id = p.ad_id
+JOIN adsets s
+ON s.adset_id = a.adset_id
+JOIN campaigns c
+ON c.campaign_id = s.campaign_id
+ORDER BY a.creative_name ASC
+),
+
+avg_rolling_ctr AS (
+	SELECT
+		creative_name,
+		date,
+		rolling_avg,
+		row_num,
+		MAX(row_num) OVER(PARTITION BY creative_name) AS max_date_num
+	FROM(
+		SELECT 
+			creative_name,
+			date,
+			LAG(avg_ctr, 6) OVER (PARTITION BY creative_name ORDER BY date ASC) AS rolling_avg,
+			ROW_NUMBER() OVER (PARTITION BY creative_name ORDER BY date ASC) AS row_num
+		FROM my_cte
+	)
+
+),
+
+filtered_dates AS (
+	SELECT
+		creative_name,
+		date,
+		rolling_avg,
+		LAG(rolling_avg) OVER (PARTITION BY creative_name ORDER BY date) AS prev_rolling_avg,
+		row_num
+	FROM avg_rolling_ctr
+	WHERE
+		max_date_num > 14
+		AND
+		row_num = 7
+		OR row_num = max_date_num
+)
+
+SELECT 
+	creative_name,
+	ROUND(((rolling_avg-prev_rolling_avg)/prev_rolling_avg)*100,2)
+FROM filtered_dates
+WHERE prev_rolling_avg IS NOT NULL
+
 
 CPC Anomaly Detection (keep)
 Calculate each adset’s daily CPC z-score and flag days with |z| > 3 and cost > daily_budget. Return adset_id, date, CPC, z-score, and overspend flag.
