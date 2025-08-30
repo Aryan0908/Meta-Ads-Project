@@ -4,8 +4,8 @@
   <h2>Why this project?</h2>
   <p>Companies spend heavily on ads but struggle to see where budget is wasted and which levers move ROAS. I designed this project to:</p>
   <ul>
-    <li>Turn raw ad logs into business KPIs (CTR, CPC, CPM, ROAS, CPL).</li>
-    <li>Learn customer drop-offs at every stage (Form View/Landing Page View -> Add-to-Cart -> Initiate Checkout -> Conversion/Purchase)</li>
-    <li>This project helps me build What-if Analysis Dashboard</li>
+    <li>Turn raw ad logs into <b>business KPIs</b> (CTR, CPC, CPM, ROAS, CPL).</li>
+    <li>Learn <b>customer drop-offs</b> at every stage (Form View/Landing Page View -> Add-to-Cart -> Initiate Checkout -> Conversion/Purchase)</li>
+    <li>This project helps me build <b>What-if Analysis Dashboard</b></li>
   </ul>
 </div>
