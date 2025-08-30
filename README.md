@@ -8,4 +8,5 @@
     <li>Learn <b>customer drop-offs</b> at every stage (Form View/Landing Page View -> Add-to-Cart -> Initiate Checkout -> Conversion/Purchase)</li>
     <li>This project helps me build <b>What-if Analysis Dashboard</b></li>
   </ul>
+  <h6>Tip for reviewers: demo first — then skim the Deep Dives for how I engineered it.</h6>
 </div>
