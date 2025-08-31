@@ -57,8 +57,8 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ## 🔹 Deep Dives — SQL
 
 ### Rolling 7-day ROAS Change
-- **👉 Why**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
-- **👉 How**:
+**👉 Why**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
+**👉 How**:
   1. ***Build Daily Totals***:
 	 - Aggregate spend and revenue by campaign/date (daily CTE).
   2. ***Apply rolling window***: 
@@ -117,12 +117,12 @@ FROM final
 WHERE rn = 1
   AND prev_roas_7d IS NOT NULL;
 ```
-- **✔️ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
+**✔️ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
 > 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
 ### CPC anomaly detection (z-score)
-- **👉 Why**: Occasionally CPC spikes due to auction competition, audience saturation, or poor targeting. Detecting anomalies quickly prevents wasted spend.
-- **👉 How**:
+**👉 Why**: Occasionally CPC spikes due to auction competition, audience saturation, or poor targeting. Detecting anomalies quickly prevents wasted spend.
+**👉 How**:
   1. ***Calculate z-scores***: 
 	- For each adset/day, compute z_score = (cpc - mean) / stddev (standarad_dev CTE).
   2. ***Check overspend***: 
@@ -189,11 +189,11 @@ WHERE
 	z_score > 2
 ORDER BY adset_id, date
 ```
-- **✔️ Business value**: Detecting when the anomaly occured and it's z-score and detect the most probable cause i.e. overspend.
+**✔️ Business value**: Detecting when the anomaly occured and it's z-score and detect the most probable cause i.e. overspend.
 
 ### Campaign funnel drop-offs & stage rates
-- **👉 Why**: Not all campaigns fail at the same stage — some lose clicks at the landing page, others lose buyers at checkout. This query highlights where users drop out of the funnel.
-- **👉 How**:
+**👉 Why**: Not all campaigns fail at the same stage — some lose clicks at the landing page, others lose buyers at checkout. This query highlights where users drop out of the funnel.
+**👉 How**:
   1. ***Build campaign-level totals***:
 	- default_table: Join Performance → Ads → Adsets → Campaigns
     - Filter to objective = conversions
@@ -202,11 +202,11 @@ ORDER BY adset_id, date
     - view_content_tbl, atc_tbl, initiate_checkout_tbl, purchase_tbl
 	- Convert wide totals → long format with (campaign, stage, total_events)
 	- Attach a stage order: 1=View Content → 2=ATC → 3=Checkout → 4=Purchase
-  3. Union and compute previous stage
+  3. ***Union and compute previous stage***:
 	- new_tbl: UNION ALL stage tables
 	- Use LAG(total_events) to fetch previous stage total per campaign
 	- Guard with COALESCE() for the first stage
-  4. Final output
+  4. ***Final output***:
 	- drop_off_rate_percnt = (prev - current)/prev * 100
 	- Returns one row per (campaign, stage) showing % loss at that step
 ```sql
