@@ -60,15 +60,15 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 - **👉 Why**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
 - **👉 How**:
   1. ***Build Daily Totals***:
-	 Aggregate spend and revenue by campaign/date (daily CTE).
+	 - Aggregate spend and revenue by campaign/date (daily CTE).
   2. ***Apply rolling window***: 
-     Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
+     - Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
   3. ***Calculate ROAS***: 
-     Divide 7-day rolling revenue / 7-day rolling cost (roas CTE).
+     - Divide 7-day rolling revenue / 7-day rolling cost (roas CTE).
   4. ***Compare to prior week***: 
-     Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
+     - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
   5. ***Final output***: 
-     Current vs previous ROAS side by side, plus % change.
+     - Current vs previous ROAS side by side, plus % change.
 ```sql
 WITH daily AS (
   SELECT
@@ -121,11 +121,20 @@ WHERE rn = 1
 > 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
 ### CPC anomaly detection (z-score)
-- **👉 Why**: Sometimes meta gives unrealistic figures that deviate from our regular figures. Anomaly detection helps us identifying those days.
+- **👉 Why**: Occasionally CPC spikes due to auction competition, audience saturation, or poor targeting. Detecting anomalies quickly prevents wasted spend.
 - **👉 How**:
-  1. ***CTE1***: Calculated z-score of each adset by date
-  2. ***CTE2***: Calculated overspend by comparing assigned budget VS actual spend and it's percentage
-  3. ***Final***: Filtered adsets and their dates with high z-score and used flags to get clearer picture of the situation
+  1. ***Calculate z-scores***: 
+	- For each adset/day, compute z_score = (cpc - mean) / stddev (standarad_dev CTE).
+  2. ***Check overspend***: 
+	- Compare actual spend vs assigned budget and compute overspend % (overspend CTE).
+  3. ***Combine results***: 
+	- Join CPC anomalies with overspend data.
+  4. ***Flag severity***:
+	- Use a CASE expression to tag:
+		-Critical: High CPC + Overspend
+		-Check: CPC Normal + Overspend
+		-Check: CPC High + No Overspend
+		-Everything is Fine
 ```sql
 WITH standarad_dev AS (
 	SELECT
