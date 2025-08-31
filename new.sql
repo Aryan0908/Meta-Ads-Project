@@ -381,14 +381,13 @@ FROM filtered_dates
 WHERE prev_rolling_avg IS NOT NULL
 
 
--- CPC Anomaly Detection (keep)
--- Calculate each adset’s daily CPC z-score and flag days with |z| > 3 and cost > daily_budget. Return adset_id, date, CPC, z-score, and overspend flag.
+-- CPC Anomaly Detection
 
 WITH standarad_dev AS (
 	SELECT
-	s.adset_id,
-	p.date,
-	ROUND(((p.cpc - AVG(p.cpc) OVER (PARTITION BY s.adset_id))/STDDEV(p.cpc) OVER (PARTITION BY s.adset_id)),2) AS z_score
+		s.adset_id,
+		p.date,
+		ROUND(((p.cpc - AVG(p.cpc) OVER (PARTITION BY s.adset_id))/STDDEV(p.cpc) OVER (PARTITION BY s.adset_id)),2) AS z_score
 
 	FROM performance p
 	JOIN ads a
@@ -401,10 +400,11 @@ WITH standarad_dev AS (
 
 overspend AS (
 	SELECT
-	s.adset_id,
-	p.date,
-	s.daily_budget,
-	SUM(p.cost) AS daily_cost
+		s.adset_id,
+		p.date,
+		s.daily_budget,
+		SUM(p.cost) AS daily_cost,
+		ROUND(((SUM(p.cost)-s.daily_budget)/s.daily_budget)*100,2) AS overspend_perc
 	FROM performance p
 	JOIN ads a
 		ON a.ad_id = p.ad_id
@@ -419,15 +419,21 @@ overspend AS (
 )
 
 SELECT 
-	stdev.adset_id,
-	stdev.date,
-	stdev.z_score,
-	os.daily_budget,
-	os.daily_cost
+		stdev.adset_id,
+		stdev.date,
+		stdev.z_score,
+		os.daily_budget,
+		os.daily_cost,
+		os.overspend_perc,
+	CASE
+		WHEN stdev.z_score >= 2 AND os.overspend_perc > 0 THEN 'Critical: High CPC + Overspend'
+		WHEN stdev.z_score < 2 AND os.overspend_perc > 0 THEN 'Check: CPC Normal - Overspend'
+		WHEN stdev.z_score >= 2 AND os.overspend_perc <= 0 THEN 'Check: CPC High - No Overspend'
+		ELSE 'Everything is Fine!!'
+	END AS alert
 FROM standarad_dev AS stdev
 JOIN overspend os
 	ON os.adset_id = stdev.adset_id AND os.date = stdev.date
 WHERE
-	z_score > 3
+	z_score > 2
 ORDER BY adset_id, date
-
