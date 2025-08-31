@@ -290,41 +290,92 @@ FROM new_tbl
 This helps marketers pinpoint the weakest funnel stage and fix it first.
 
 ## 🔹 Deep Dives — DAX
+### Best Week (by ROAS)
+- **👉 Why**: Surface the single strongest week to highlight peak performance in the period
+- **👉 How**: Ranks weeks by [Roas] and returns the week with the highest value
 ```DAX
-Impressions = SUM(Performance[Impressions])
-Clicks      = SUM(Performance[Clicks])
-Cost        = SUM(Performance[Cost])
-Revenue     = SUM(Performance[Revenue])
-Purchases   = SUM(Performance[Purchases])
-Form Views  = SUM(Performance[Form Views])
+BestWeek =
+CALCULATE(
+    MAX('Date'[WeekNum]),
+    TOPN(
+        1,
+        ADDCOLUMNS(
+            SUMMARIZE('Date', 'Date'[WeekNum]),
+            "Weekly ROAS", [Roas]
+        ),
+        [Weekly ROAS], DESC
+    )
+)
+```
 
-CTR %   = DIVIDE([Clicks], [Impressions])
-CPC     = DIVIDE([Cost], [Clicks])
-CPM     = DIVIDE([Cost], [Impressions]) * 1000
-ROAS %  = DIVIDE([Revenue], [Cost])
-CPL     = DIVIDE([Cost], [Purchases])
+### Rolling ROAS (7 days)
+- **👉 Why**: To keep up ROAS fluctuations and trends
+- **👉 How**: Averages daily [Roas] across the last 7 days.
+```DAX
+7DaysRollingRoas =
+AVERAGEX(
+    DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -7, DAY),
+    [Roas]
+)
+```
 
-Rolling ROAS % (7d) =
-VAR Rev7  = CALCULATE ( [Revenue], DATESINPERIOD ( 'Date'[Date], MAX ( 'Date'[Date] ), -6, DAY ) )
-VAR Cost7 = CALCULATE ( [Cost],    DATESINPERIOD ( 'Date'[Date], MAX ( 'Date'[Date] ), -6, DAY ) )
-RETURN DIVIDE ( Rev7, Cost7 )
+### ROAS Month-over-Month
+- **👉 Why**: Track ROAS trend month over month with explicit date windows
+- **👉 How**:
+	1. ***Current month***: Uses MAX('Date'[MonthNum]) to select the active month
+	2. ***Previous month***: calculates start/end boundaries with EOMONTH
+```DAX
+RoasCurrentMonth =
+VAR maxMonth = MAX('Date'[MonthNum])
+RETURN
+    CALCULATE(
+        [Roas],
+        MONTH(performance[date]) = maxMonth
+    )
 
-Selected Metric Value =
+RoasPreviousMonth =
+VAR startPrevMonth = EOMONTH(MAX('Date'[Date]), -2) + 1
+VAR endPrevMonth   = EOMONTH(MAX('Date'[Date]), -1)
+RETURN
+    CALCULATE(
+        IF ( [Roas] > 0, [Roas], 0 ),
+        'Date'[Date] >= startPrevMonth && 'Date'[Date] <= endPrevMonth
+    )
+
+Roas_MOM% =
+VAR prev = [RoasPreviousMonth]
+VAR curr = [RoasCurrentMonth]
+RETURN IF ( NOT ISBLANK(prev), DIVIDE(curr - prev, prev) )
+
+Roas_MOMLabel =
+VAR change = [Roas_MOM%] * 100
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK(change), "–",
+        change > 0, "▲ " & FORMAT(change, "0.0") & "% MoM",
+        change < 0, "▼ " & FORMAT(change, "0.0") & "% MoM",
+        "0.0% MoM"
+    )
+```
+
+### Metric Selector + Dynamic Title
+- **👉 Why**: One visual toggles CTR/CPC/ROAS/CPL
+```DAX
+  Selected Metric Value =
 VAR m = SELECTEDVALUE ( MetricSelector[Metric], "ROAS" )
 RETURN
-    SWITCH ( TRUE(),
-        m = "CTR",  [CTR %],
-        m = "CPC",  [CPC],
-        m = "ROAS", [ROAS %],
-        m = "CPL",  [CPL]
+    SWITCH (
+        TRUE (),
+        m = "CTR",  DIVIDE ( [Clicks],   [Impressions] ),
+        m = "CPC",  DIVIDE ( [Cost],     [Clicks]     ),
+        m = "ROAS", DIVIDE ( [Revenue],  [Cost]       ),
+        m = "CPL",  DIVIDE ( [Cost],     [Purchases]  )
     )
 
 Dynamic Title = "Performance by " & SELECTEDVALUE ( MetricSelector[Metric], "ROAS" )
-
-Projected Cost   = [Cost] * ( 1 + 'Budget Adjustment %'[Budget Adjustment % Value] )
-Projected ROAS % = DIVIDE ( [Revenue], [Projected Cost] )
-Projected CPL    = DIVIDE ( [Projected Cost], [Purchases] )
 ```
+
 
 ---
 
