@@ -37,7 +37,7 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ## 🔹 Dashboard Pages
 *(Add screenshots from your repo's images folder)*
 
-- Main Dashboard  
+- Main Dashboard
 - Conversion  
 - Conversion Details  
 - Adset Analysis  
@@ -57,72 +57,96 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ## 🔹 Deep Dives — SQL
 
 ### v_daily_kpis (foundation view)
+- **👉 Why**: This is the backbone of the project. It aggregates raw performance logs into daily KPIs that everything else builds on.
 ```sql
-CREATE OR REPLACE VIEW v_daily_kpis AS
 SELECT
   p.date::date AS date,
   p.ad_id,
   a.adset_id,
   s.campaign_id,
-  SUM(p.impressions) AS impressions,
-  SUM(p.clicks) AS clicks,
+  ROUND(SUM(p.impressions),2) AS impressions,
+  ROUND(SUM(p.clicks),2) AS clicks,
   SUM(p.cost) AS cost,
   SUM(COALESCE(p.revenue,0)) AS revenue,
   SUM(COALESCE(p.view_content,0)) AS view_content,
   SUM(COALESCE(p.add_to_cart,0)) AS add_to_cart,
   SUM(COALESCE(p.initiate_checkout,0)) AS initiate_checkout,
-  SUM(COALESCE(p.purchases, p.conversions)) AS purchases,
+  SUM(COALESCE(p.purchase,0)) AS purchases,
   SUM(COALESCE(p.form_view,0)) AS form_view,
-  CASE WHEN SUM(p.impressions) > 0 THEN SUM(p.clicks)::numeric / SUM(p.impressions) ELSE NULL END AS ctr,
-  CASE WHEN SUM(p.clicks) > 0 THEN SUM(p.cost)::numeric / SUM(p.clicks) ELSE NULL END AS cpc,
-  CASE WHEN SUM(p.impressions) > 0 THEN (SUM(p.cost)::numeric / SUM(p.impressions)) * 1000 ELSE NULL END AS cpm,
-  CASE WHEN SUM(p.cost) > 0 THEN SUM(COALESCE(p.revenue,0))::numeric / SUM(p.cost) ELSE NULL END AS roas,
-  CASE WHEN SUM(COALESCE(p.purchases, p.conversions,0)) > 0 
-       THEN SUM(p.cost)::numeric / NULLIF(SUM(COALESCE(p.purchases, p.conversions,0)),0) 
+  CASE WHEN SUM(p.impressions) > 0 THEN ROUND(AVG(ctr)::numeric,2) ELSE NULL END AS ctr,
+  CASE WHEN SUM(p.clicks) > 0 THEN ROUND(AVG(cpc)::numeric,2) ELSE NULL END AS cpc,
+  CASE WHEN SUM(p.impressions) > 0 THEN ROUND(AVG(cpm)::numeric,2) ELSE NULL END AS cpm,
+  CASE WHEN SUM(p.cost) > 0 THEN ROUND(SUM(COALESCE(p.revenue,0)::numeric) / SUM(p.cost)::numeric,2) ELSE NULL END AS roas,
+  CASE WHEN SUM(COALESCE(p.purchase, 0)) > 0 
+       THEN ROUND(SUM(p.cost)::numeric / NULLIF(SUM(COALESCE(p.purchase,0)),0),2) 
        ELSE NULL END AS cpl
 FROM performance p
-JOIN ads a    ON a.ad_id    = p.ad_id
+JOIN ads a ON a.ad_id = p.ad_id
 JOIN adsets s ON s.adset_id = a.adset_id
 JOIN campaigns c ON c.campaign_id = s.campaign_id
 GROUP BY 1,2,3,4;
 ```
+- **✔️ Business value**: Instead of calculating CTR, CPC, ROAS in every query, this centralizes KPIs into a view so analysts (or dashboards) can reuse them. It’s basically your fact table.
+> 💡 Note for reviewers: For the project I've not used this view for my future queries or DAX measures.
 
-### Rolling 7-day ROAS per campaign
+### Rolling 7-day ROAS Change
+- **👉 Why**: This helps to determine the campaigns performance.
+- **👉 How**:
+  1. *CTE1*: Calculated sum of spend and revenue by campaign id and date
+  2. *CTE2*: Calculated Rolling 7-day spend and Rolling 7-day revenue from *CTE1* using PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  3. *CTE3*: Calculated Rolling 7-day ROAS (7-day revenue / 7-day spend) using *CTE2*
+  4. *CTE4*: Calculated previous week Rolling 7-day ROAS using LAG(roas_7d, 7)
+  5. *Final*: Compared current 7-day ROAS VS previous 7-day ROAS and showed the difference in percent
 ```sql
 WITH daily AS (
   SELECT
-    v.date, v.campaign_id,
-    SUM(v.revenue) AS revenue,
-    SUM(v.cost)    AS cost
-  FROM v_daily_kpis v
-  GROUP BY v.date, v.campaign_id
+    c.campaign_id,
+    p.date,
+    SUM(p.revenue) AS day_revenue,
+    SUM(p.cost) AS day_cost
+  FROM performance p
+  JOIN ads a ON a.ad_id = p.ad_id
+  JOIN adsets s ON s.adset_id = a.adset_id
+  JOIN campaigns c ON c.campaign_id = s.campaign_id
+  WHERE c.objective IN ('conversions','traffic')
+  GROUP BY c.campaign_id, p.date
 ),
-roll AS (
+rolling AS (
   SELECT
     campaign_id,
     date,
-    (SUM(revenue) OVER win) / NULLIF(SUM(cost) OVER win, 0) AS roas_7d
+    SUM(day_revenue) OVER (PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS rev_7d,
+    SUM(day_cost) OVER (PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cost_7d
   FROM daily
-  WINDOW win AS (
-    PARTITION BY campaign_id
-    ORDER BY date
-    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
-  )
 ),
-endpoints AS (
+roas AS (
   SELECT
     campaign_id,
+    date,
+    CASE WHEN cost_7d = 0 THEN NULL ELSE rev_7d / cost_7d END AS roas_7d
+  FROM rolling
+),
+final AS (
+  SELECT
+    campaign_id,
+    date,
     roas_7d,
-    LAG(roas_7d, 7) OVER (PARTITION BY campaign_id ORDER BY date) AS roas_7d_prev
-  FROM roll
+    LAG(roas_7d, 7) OVER (PARTITION BY campaign_id ORDER BY date) AS prev_roas_7d,
+    ROW_NUMBER() OVER (PARTITION BY campaign_id ORDER BY date DESC) AS rn
+  FROM roas
 )
-SELECT campaign_id,
-       roas_7d,
-       roas_7d_prev,
-       ROUND(((roas_7d - roas_7d_prev) / NULLIF(roas_7d_prev,0)) * 100, 2) AS wow_change_pct
-FROM endpoints
-WHERE roas_7d_prev IS NOT NULL;
+SELECT
+  campaign_id,
+  date,
+  ROUND(roas_7d, 2) AS current_week_roas,
+  ROUND(prev_roas_7d, 2) AS prev_week_roas,
+  ROUND( (roas_7d - prev_roas_7d) / NULLIF(prev_roas_7d, 0) * 100, 2) AS seven_day_roas_change
+FROM final
+WHERE rn = 1
+  AND prev_roas_7d IS NOT NULL;
 ```
+- **✔️ Business value**: Using this marketers can make decisions for optimising the campaigns for increasing profits and make improvements to minimise furthur losses.
+> 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
 ### CPC anomaly detection (z-score)
 ```sql
@@ -148,48 +172,6 @@ WHERE ABS((d.cpc - s.mean_cpc) / NULLIF(s.std_cpc,0)) >= 2.0
 ORDER BY ABS((d.cpc - s.mean_cpc) / NULLIF(s.std_cpc,0)) DESC;
 ```
 
-### CTR objective lift — first 7 days vs last 7 days (per creative)
-```sql
-WITH base AS (
-  SELECT
-    c.objective,
-    a.ad_id,
-    p.date::date AS date,
-    SUM(p.clicks)::numeric / NULLIF(SUM(p.impressions),0) AS ctr
-  FROM performance p
-  JOIN ads a    ON a.ad_id    = p.ad_id
-  JOIN adsets s ON s.adset_id = a.adset_id
-  JOIN campaigns c ON c.campaign_id = s.campaign_id
-  WHERE c.objective = 'conversions'
-  GROUP BY c.objective, a.ad_id, p.date
-),
-ranked AS (
-  SELECT
-    ad_id,
-    date,
-    ctr,
-    ROW_NUMBER() OVER (PARTITION BY ad_id ORDER BY date ASC)  AS rn_asc,
-    ROW_NUMBER() OVER (PARTITION BY ad_id ORDER BY date DESC) AS rn_desc,
-    COUNT(*)     OVER (PARTITION BY ad_id) AS total_days
-  FROM base
-),
-first_last AS (
-  SELECT
-    ad_id,
-    AVG(CASE WHEN rn_asc  <= 7 THEN ctr END) AS ctr_first7,
-    AVG(CASE WHEN rn_desc <= 7 THEN ctr END) AS ctr_last7
-  FROM ranked
-  GROUP BY ad_id
-)
-SELECT ad_id,
-       ROUND(ctr_first7, 4) AS ctr_first7,
-       ROUND(ctr_last7, 4)  AS ctr_last7,
-       ROUND((ctr_last7 - ctr_first7) / NULLIF(ctr_first7,0) * 100, 2) AS lift_pct
-FROM first_last
-WHERE ctr_first7 IS NOT NULL AND ctr_last7 IS NOT NULL
-ORDER BY lift_pct DESC;
-```
-
 ### Campaign funnel drop-offs & stage rates
 ```sql
 SELECT
@@ -209,38 +191,6 @@ FROM v_daily_kpis v
 GROUP BY v.campaign_id
 ORDER BY impressions DESC;
 ```
-
-### Week-over-Week ROI by adset
-```sql
-WITH weekly AS (
-  SELECT
-    a.adset_id,
-    DATE_TRUNC('week', v.date)::date AS week_start,
-    SUM(v.revenue) / NULLIF(SUM(v.cost),0) AS roi
-  FROM v_daily_kpis v
-  JOIN ads a ON a.ad_id = v.ad_id
-  GROUP BY a.adset_id, DATE_TRUNC('week', v.date)
-),
-delta AS (
-  SELECT
-    adset_id,
-    week_start,
-    roi,
-    LAG(roi) OVER (PARTITION BY adset_id ORDER BY week_start) AS prev_roi
-  FROM weekly
-)
-SELECT
-  adset_id,
-  week_start,
-  roi,
-  prev_roi,
-  ROUND((roi - prev_roi) / NULLIF(prev_roi,0) * 100, 2) AS wow_change_pct
-FROM delta
-WHERE prev_roi IS NOT NULL
-ORDER BY ABS((roi - prev_roi) / NULLIF(prev_roi,0)) DESC;
-```
-
----
 
 ## 🔹 Deep Dives — DAX
 ```DAX
