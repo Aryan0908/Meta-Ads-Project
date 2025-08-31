@@ -56,47 +56,19 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 
 ## 🔹 Deep Dives — SQL
 
-### v_daily_kpis (foundation view)
-- **👉 Why**: This is the backbone of the project. It aggregates raw performance logs into daily KPIs that everything else builds on.
-```sql
-SELECT
-  p.date::date AS date,
-  p.ad_id,
-  a.adset_id,
-  s.campaign_id,
-  ROUND(SUM(p.impressions),2) AS impressions,
-  ROUND(SUM(p.clicks),2) AS clicks,
-  SUM(p.cost) AS cost,
-  SUM(COALESCE(p.revenue,0)) AS revenue,
-  SUM(COALESCE(p.view_content,0)) AS view_content,
-  SUM(COALESCE(p.add_to_cart,0)) AS add_to_cart,
-  SUM(COALESCE(p.initiate_checkout,0)) AS initiate_checkout,
-  SUM(COALESCE(p.purchase,0)) AS purchases,
-  SUM(COALESCE(p.form_view,0)) AS form_view,
-  CASE WHEN SUM(p.impressions) > 0 THEN ROUND(AVG(ctr)::numeric,2) ELSE NULL END AS ctr,
-  CASE WHEN SUM(p.clicks) > 0 THEN ROUND(AVG(cpc)::numeric,2) ELSE NULL END AS cpc,
-  CASE WHEN SUM(p.impressions) > 0 THEN ROUND(AVG(cpm)::numeric,2) ELSE NULL END AS cpm,
-  CASE WHEN SUM(p.cost) > 0 THEN ROUND(SUM(COALESCE(p.revenue,0)::numeric) / SUM(p.cost)::numeric,2) ELSE NULL END AS roas,
-  CASE WHEN SUM(COALESCE(p.purchase, 0)) > 0 
-       THEN ROUND(SUM(p.cost)::numeric / NULLIF(SUM(COALESCE(p.purchase,0)),0),2) 
-       ELSE NULL END AS cpl
-FROM performance p
-JOIN ads a ON a.ad_id = p.ad_id
-JOIN adsets s ON s.adset_id = a.adset_id
-JOIN campaigns c ON c.campaign_id = s.campaign_id
-GROUP BY 1,2,3,4;
-```
-- **✔️ Business value**: Instead of calculating CTR, CPC, ROAS in every query, this centralizes KPIs into a view so analysts (or dashboards) can reuse them. It’s basically your fact table.
-> 💡 Note for reviewers: For the project I've not used this view for my future queries or DAX measures.
-
 ### Rolling 7-day ROAS Change
-- **👉 Why**: This helps to determine the campaigns performance.
+- **👉 Why**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
 - **👉 How**:
-  - ***CTE1***: Calculated sum of spend and revenue by campaign id and date
-  2. ***CTE2***: Calculated Rolling 7-day spend and Rolling 7-day revenue from *CTE1* using PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
-  3. ***CTE3***: Calculated Rolling 7-day ROAS (7-day revenue / 7-day spend) using *CTE2*
-  4. ***CTE4***: Calculated previous week Rolling 7-day ROAS using LAG(roas_7d, 7)
-  5. ***Final***: Compared current 7-day ROAS VS previous 7-day ROAS and showed the difference in percent
+  1. ***Build Daily Totals***:
+    - Aggregate spend and revenue by campaign/date (daily CTE).
+  2. ***Apply rolling window***: 
+    - Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
+  3. ***Calculate ROAS***: 
+    - Divide 7-day rolling revenue / 7-day rolling cost (roas CTE).
+  4. ***Compare to prior week***: 
+    - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
+  5. ***Final output***: 
+    - Current vs previous ROAS side by side, plus % change.
 ```sql
 WITH daily AS (
   SELECT
@@ -145,51 +117,148 @@ FROM final
 WHERE rn = 1
   AND prev_roas_7d IS NOT NULL;
 ```
-- **✔️ Business value**: Using this marketers can make decisions for optimising the campaigns for increasing profits and make improvements to minimise furthur losses.
+- **✔️ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
 > 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
 ### CPC anomaly detection (z-score)
+- **👉 Why**: Sometimes meta gives unrealistic figures that deviate from our regular figures. Anomaly detection helps us identifying those days.
+- **👉 How**:
+  1. ***CTE1***: Calculated z-score of each adset by date
+  2. ***CTE2***: Calculated overspend by comparing assigned budget VS actual spend and it's percentage
+  3. ***Final***: Filtered adsets and their dates with high z-score and used flags to get clearer picture of the situation
 ```sql
-WITH daily AS (
-  SELECT v.campaign_id, v.date, 
-         SUM(v.cost) / NULLIF(SUM(v.clicks),0) AS cpc
-  FROM v_daily_kpis v
-  GROUP BY v.campaign_id, v.date
+WITH standarad_dev AS (
+	SELECT
+		s.adset_id,
+		p.date,
+		ROUND(((p.cpc - AVG(p.cpc) OVER (PARTITION BY s.adset_id))/STDDEV(p.cpc) OVER (PARTITION BY s.adset_id)),2) AS z_score
+
+	FROM performance p
+	JOIN ads a
+		ON a.ad_id = p.ad_id
+	JOIN adsets s
+		ON s.adset_id = a.adset_id
+	JOIN campaigns c
+		ON c.campaign_id = s.campaign_id
 ),
-stats AS (
-  SELECT
-    campaign_id,
-    AVG(cpc) AS mean_cpc,
-    STDDEV(cpc) AS std_cpc
-  FROM daily
-  GROUP BY campaign_id
+overspend AS (
+	SELECT
+		s.adset_id,
+		p.date,
+		s.daily_budget,
+		SUM(p.cost) AS daily_cost,
+		ROUND(((SUM(p.cost)-s.daily_budget)/s.daily_budget)*100,2) AS overspend_perc
+	FROM performance p
+	JOIN ads a
+		ON a.ad_id = p.ad_id
+	JOIN adsets s
+		ON s.adset_id = a.adset_id
+	JOIN campaigns c
+		ON c.campaign_id = s.campaign_id
+	GROUP BY 
+		s.adset_id,
+		p.date,
+		s.daily_budget
 )
-SELECT d.campaign_id, d.date, d.cpc,
-       ROUND((d.cpc - s.mean_cpc) / NULLIF(s.std_cpc,0), 2) AS z_score
-FROM daily d
-JOIN stats s ON s.campaign_id = d.campaign_id
-WHERE ABS((d.cpc - s.mean_cpc) / NULLIF(s.std_cpc,0)) >= 2.0
-ORDER BY ABS((d.cpc - s.mean_cpc) / NULLIF(s.std_cpc,0)) DESC;
+SELECT 
+		stdev.adset_id,
+		stdev.date,
+		stdev.z_score,
+		os.daily_budget,
+		os.daily_cost,
+		os.overspend_perc,
+	CASE
+		WHEN stdev.z_score >= 2 AND os.overspend_perc > 0 THEN 'Critical: High CPC + Overspend'
+		WHEN stdev.z_score < 2 AND os.overspend_perc > 0 THEN 'Check: CPC Normal - Overspend'
+		WHEN stdev.z_score >= 2 AND os.overspend_perc <= 0 THEN 'Check: CPC High - No Overspend'
+		ELSE 'Everything is Fine!!'
+	END AS alert
+FROM standarad_dev AS stdev
+JOIN overspend os
+	ON os.adset_id = stdev.adset_id AND os.date = stdev.date
+WHERE
+	z_score > 2
+ORDER BY adset_id, date
 ```
+- **✔️ Business value**: Detecting when the anomaly occured and it's z-score and detect the most probable cause i.e. overspend.
 
 ### Campaign funnel drop-offs & stage rates
+- **👉 Why**: To know where customers are 
+- **👉 How**:
 ```sql
+With default_table AS (
 SELECT
-  v.campaign_id,
-  SUM(v.impressions)        AS impressions,
-  SUM(v.clicks)             AS clicks,
-  SUM(v.view_content)       AS view_content,
-  SUM(v.add_to_cart)        AS add_to_cart,
-  SUM(v.initiate_checkout)  AS initiate_checkout,
-  SUM(v.purchases)          AS purchases,
-  SUM(v.clicks)::numeric         / NULLIF(SUM(v.impressions),0)        AS ctr,
-  SUM(v.view_content)::numeric   / NULLIF(SUM(v.clicks),0)             AS click_to_viewcontent,
-  SUM(v.add_to_cart)::numeric    / NULLIF(SUM(v.view_content),0)       AS view_to_cart,
-  SUM(v.initiate_checkout)::numeric / NULLIF(SUM(v.add_to_cart),0)     AS cart_to_checkout,
-  SUM(v.purchases)::numeric      / NULLIF(SUM(v.initiate_checkout),0)  AS checkout_to_purchase
-FROM v_daily_kpis v
-GROUP BY v.campaign_id
-ORDER BY impressions DESC;
+	c.campaign_id,
+	SUM(p.view_content) AS view_content,
+	SUM(p.add_to_cart) AS add_to_cart,
+	SUM(p.initiate_checkout) AS initiate_checkout,
+	SUM(p.purchase) AS purchase
+FROM performance p
+JOIN ads a ON a.ad_id = p.ad_id
+JOIN adsets s ON s.adset_id = a.adset_id
+JOIN campaigns c ON c.campaign_id = s.campaign_id
+WHERE
+	c.objective = 'conversions'
+GROUP BY c.campaign_id
+),
+view_content_tbl AS (
+SELECT
+	campaign_id,
+	'View Content' AS conversion_event,
+	COALESCE(view_content,0) AS total_events,
+	1 AS stager
+FROM default_table
+),
+atc_tbl AS (
+SELECT
+	campaign_id,
+	'Add To Cart' AS conversion_event,
+	COALESCE(add_to_cart,0) AS total_events,
+	2 AS stager
+FROM default_table
+),
+initiate_checkout_tbl AS (
+SELECT
+	campaign_id,
+	'Initiate Checkout' AS conversion_event,
+	COALESCE(initiate_checkout,0) AS total_events,
+	3 AS stager
+FROM default_table
+),
+purchase_tbl AS (
+SELECT
+	campaign_id,
+	'Purchase' AS conversion_event,
+	COALESCE(purchase,0) AS total_events,
+	4 AS stager
+FROM default_table
+),
+new_tbl AS (
+SELECT campaign_id, conversion_event, total_events, 
+COALESCE(
+	LAG(total_events) OVER (PARTITION BY campaign_id ORDER BY stager ASC),
+	0) AS lag_col 
+FROM
+(SELECT * FROM view_content_tbl
+UNION ALL
+SELECT * FROM atc_tbl
+UNION ALL
+SELECT * FROM initiate_checkout_tbl
+UNION ALL
+SELECT * FROM purchase_tbl
+ORDER BY campaign_id DESC, stager ASC)
+)
+
+SELECT 
+	campaign_id,
+	conversion_event,
+	total_events,
+	CASE
+	     WHEN lag_col = 0 THEN 0
+	     ELSE ROUND(((lag_col - total_events)*100.00/lag_col),2)
+	END AS drop_off_rate_percnt
+
+FROM new_tbl
 ```
 
 ## 🔹 Deep Dives — DAX
