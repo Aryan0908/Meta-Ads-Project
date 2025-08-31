@@ -131,10 +131,10 @@ WHERE rn = 1
 	- Join CPC anomalies with overspend data.
   4. ***Flag severity***:
 	- Use a CASE expression to tag:
-		-Critical: High CPC + Overspend
-		-Check: CPC Normal + Overspend
-		-Check: CPC High + No Overspend
-		-Everything is Fine
+		- Critical: High CPC + Overspend
+		- Check: CPC Normal + Overspend
+		- Check: CPC High + No Overspend
+		- Everything is Fine
 ```sql
 WITH standarad_dev AS (
 	SELECT
