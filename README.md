@@ -92,11 +92,11 @@ GROUP BY 1,2,3,4;
 ### Rolling 7-day ROAS Change
 - **👉 Why**: This helps to determine the campaigns performance.
 - **👉 How**:
-  1. *CTE1*: Calculated sum of spend and revenue by campaign id and date
-  2. *CTE2*: Calculated Rolling 7-day spend and Rolling 7-day revenue from *CTE1* using PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
-  3. *CTE3*: Calculated Rolling 7-day ROAS (7-day revenue / 7-day spend) using *CTE2*
-  4. *CTE4*: Calculated previous week Rolling 7-day ROAS using LAG(roas_7d, 7)
-  5. *Final*: Compared current 7-day ROAS VS previous 7-day ROAS and showed the difference in percent
+  - ***CTE1***: Calculated sum of spend and revenue by campaign id and date
+  2. ***CTE2***: Calculated Rolling 7-day spend and Rolling 7-day revenue from *CTE1* using PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  3. ***CTE3***: Calculated Rolling 7-day ROAS (7-day revenue / 7-day spend) using *CTE2*
+  4. ***CTE4***: Calculated previous week Rolling 7-day ROAS using LAG(roas_7d, 7)
+  5. ***Final***: Compared current 7-day ROAS VS previous 7-day ROAS and showed the difference in percent
 ```sql
 WITH daily AS (
   SELECT
