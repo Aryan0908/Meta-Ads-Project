@@ -138,7 +138,7 @@ GROUP BY s.device
 -- Campaign Funnel Drop-off
 With default_table AS (
 SELECT
-	c.campaign_name,
+	c.campaign_id,
 	SUM(p.view_content) AS view_content,
 	SUM(p.add_to_cart) AS add_to_cart,
 	SUM(p.initiate_checkout) AS initiate_checkout,
@@ -149,41 +149,44 @@ JOIN adsets s ON s.adset_id = a.adset_id
 JOIN campaigns c ON c.campaign_id = s.campaign_id
 WHERE
 	c.objective = 'conversions'
-GROUP BY campaign_name
-ORDER BY campaign_name DESC
+GROUP BY c.campaign_id
 ),
 view_content_tbl AS (
 SELECT
-	campaign_name,
+	campaign_id,
 	'View Content' AS conversion_event,
-	view_content AS total_events
+	COALESCE(view_content,0) AS total_events,
+	1 AS stager
 FROM default_table
 ),
 atc_tbl AS (
 SELECT
-	campaign_name,
+	campaign_id,
 	'Add To Cart' AS conversion_event,
-	add_to_cart AS total_events
+	COALESCE(add_to_cart,0) AS total_events,
+	2 AS stager
 FROM default_table
 ),
 initiate_checkout_tbl AS (
 SELECT
-	campaign_name,
+	campaign_id,
 	'Initiate Checkout' AS conversion_event,
-	initiate_checkout AS total_events
+	COALESCE(initiate_checkout,0) AS total_events,
+	3 AS stager
 FROM default_table
 ),
 purchase_tbl AS (
 SELECT
-	campaign_name,
+	campaign_id,
 	'Purchase' AS conversion_event,
-	purchase AS total_events
+	COALESCE(purchase,0) AS total_events,
+	4 AS stager
 FROM default_table
 ),
 new_tbl AS (
-SELECT campaign_name, conversion_event, total_events, 
+SELECT campaign_id, conversion_event, total_events, 
 COALESCE(
-	LAG(total_events) OVER (PARTITION BY campaign_name ORDER BY total_events DESC),
+	LAG(total_events) OVER (PARTITION BY campaign_id ORDER BY stager ASC),
 	0) AS lag_col 
 FROM
 (SELECT * FROM view_content_tbl
@@ -193,11 +196,11 @@ UNION ALL
 SELECT * FROM initiate_checkout_tbl
 UNION ALL
 SELECT * FROM purchase_tbl
-ORDER BY campaign_name DESC, total_events DESC)
+ORDER BY campaign_id DESC, stager ASC)
 )
 
 SELECT 
-	campaign_name,
+	campaign_id,
 	conversion_event,
 	total_events,
 	CASE
@@ -207,7 +210,6 @@ SELECT
 
 FROM new_tbl
 
-	
 -- Campaigns Exceeding Daily Budget
 SELECT
   s.campaign_id,
