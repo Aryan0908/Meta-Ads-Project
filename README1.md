@@ -23,10 +23,13 @@
 ---
 
 ## 1) Daily KPI’s (foundation view)
+- **Scope**: Global
+
 - **What it answers**: 
 Creates daily fact table with important metrics: impressions, cicks, cost, revenue, view content, add-to-cart, initiate checkout, purchase, form view, ctr, cpc, cpm, roas, cpl
 
-- **Scope**: Global
+- **Why it matters**: A single, reusable base eliminates repeating joins queries and BI
+
 <details>
 <summary><b>▶️ View SQL</b></summary>
 
@@ -59,9 +62,6 @@ JOIN campaigns c ON c.campaign_id = s.campaign_id
 GROUP BY 1,2,3,4;
 ```
 </details>
-
-- **Why it matters**: 
-A single, reusable base eliminates repeating joins queries and BI
 
 - **How it's built**:
   - Join: performance → ads → adsets → campaigns
@@ -166,3 +166,80 @@ ORDER BY avg_ctr DESC
   - Filter campaigns with objective='traffic'
   - Group by 'age range'
   - Average CTR per age range
+
+## 5) Campaign Status
+- **Scope**: Global
+
+- **What it answers**: How many campaigns are currently active vs paused?
+
+- **Why it matters**: Quick health check on campaign management.
+
+<details>
+<summary><b>▶️ View SQL</b></summary>
+
+```sql
+SELECT 
+	c.status,
+	COUNT(c.campaign_id) AS count_of_campaign
+FROM campaigns AS c
+GROUP BY c.status
+```
+</details>
+
+## 6) Ads with 0 impressions
+- **Scope**: Global
+
+- **What it answers**: Which ads received no delivery?
+
+- **Why it matters**: There can be many reasons why the ads are not receiving impressions. By filtering these ads we can look for possible causes
+
+<details>
+<summary><b>▶️ View SQL</b></summary>
+
+```sql
+SELECT 
+	ad.ad_id,
+	SUM(p.impressions) AS total_impressions
+FROM campaigns AS c
+JOIN adsets AS s
+	ON s.campaign_id = c.campaign_id
+JOIN ads AS ad
+	ON ad.adset_id = s.adset_id
+JOIN performance AS p
+	ON p.ad_id = ad.ad_id
+GROUP BY ad.ad_id
+HAVING SUM(p.impressions) = 0
+```
+</details>
+
+- **How it's built**: Sum of impressions grouped by 'ad id'
+
+## 7) Cost Per Lead
+- **Scope**: Lead
+
+- **What it answers**: What is the cost per lead (CPL) for each lead campaign?
+
+- **Why it matters**: Determining which settings (demographics and creatives) are generating cheaper leads.
+
+<details>
+<summary><b>▶️ View SQL</b></summary>
+
+```sql
+SELECT 
+	c.campaign_id,
+	ROUND((SUM(p.cost)/SUM(p.lead)),2) AS CPL,
+	s.age_range,
+	s.placement,
+	s.country
+FROM campaigns AS c
+JOIN adsets AS s
+	ON s.campaign_id = c.campaign_id
+JOIN ads AS ad
+	ON ad.adset_id = s.adset_id
+JOIN performance AS p
+	ON p.ad_id = ad.ad_id
+WHERE
+	c.objective = 'leads'
+GROUP BY c.campaign_id
+```
+</details>
