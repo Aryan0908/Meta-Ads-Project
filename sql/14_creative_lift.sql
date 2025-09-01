@@ -23,7 +23,7 @@ avg_rolling_ctr AS (
 		SELECT 
 			creative_name,
 			date,
-			LAG(avg_ctr, 6) OVER (PARTITION BY creative_name ORDER BY date ASC) AS rolling_avg,
+			avg_ctr AS rolling_avg,
 			ROW_NUMBER() OVER (PARTITION BY creative_name ORDER BY date ASC) AS row_num
 		FROM my_cte
 	)
@@ -39,12 +39,14 @@ filtered_dates AS (
 	WHERE
 		max_date_num > 14
 		AND
-		row_num = 7
-		OR row_num = max_date_num
+		(row_num = 7
+		OR 
+		row_num = max_date_num)
 )
 
 SELECT 
 	creative_name,
-	ROUND(((rolling_avg-prev_rolling_avg)/prev_rolling_avg)*100,2)
+	ROUND(((rolling_avg-prev_rolling_avg)/prev_rolling_avg)*100,2) AS creative_life_perc
 FROM filtered_dates
 WHERE prev_rolling_avg IS NOT NULL
+
