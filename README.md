@@ -113,13 +113,15 @@ WHERE rn = 1
 
 - **👉 How**:
   1. ***Build Daily Totals***:
-	 - Aggregate spend and revenue by campaign/date (daily CTE).
+	 - daily (CTE): Join Performance → Ads → Adsets → Campaigns
+	 - Group by: campaign id, date
+	 - Aggregate: Sum of spend and revenue
   2. ***Apply rolling window***: 
-     - Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
+     - rolling (CTE): Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
   3. ***Calculate ROAS***: 
-     - Divide 7-day rolling revenue / 7-day rolling cost (roas CTE).
+     - roas (CTE): Divide 7-day rolling revenue / 7-day rolling cost.
   4. ***Compare to prior week***: 
-     - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
+     - final (CTE): Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period.
   5. ***Final output***: 
      - Current vs previous ROAS side by side, plus % change.
 
