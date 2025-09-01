@@ -70,7 +70,7 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
   5. ***Final output***: 
      - Current vs previous ROAS side by side, plus % change.
 
-- <details>
+<details>
 <summary>View SQL code</summary>
 
 ```sql
