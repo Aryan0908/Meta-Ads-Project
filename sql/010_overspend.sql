@@ -1,7 +1,7 @@
 SELECT
   s.campaign_id,
   p.date,
-  SUM(p.cost)        AS total_spend,
+  SUM(p.cost) AS total_spend,
   SUM(s.daily_budget) AS total_budget,
   (SUM(p.cost) - SUM(s.daily_budget)) AS overspend_amount
 FROM performance p
