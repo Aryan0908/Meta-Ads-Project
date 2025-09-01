@@ -58,18 +58,6 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 
 ### Rolling 7-day ROAS Change
 - **👉 Why**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
-- **👉 How**:
-  1. ***Build Daily Totals***:
-	 - Aggregate spend and revenue by campaign/date (daily CTE).
-  2. ***Apply rolling window***: 
-     - Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
-  3. ***Calculate ROAS***: 
-     - Divide 7-day rolling revenue / 7-day rolling cost (roas CTE).
-  4. ***Compare to prior week***: 
-     - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
-  5. ***Final output***: 
-     - Current vs previous ROAS side by side, plus % change.
-
 <details>
 <summary>View SQL code</summary>
 
@@ -122,7 +110,17 @@ WHERE rn = 1
   AND prev_roas_7d IS NOT NULL;
 ```
 </details>
-
+- **👉 How**:
+  1. ***Build Daily Totals***:
+	 - Aggregate spend and revenue by campaign/date (daily CTE).
+  2. ***Apply rolling window***: 
+     - Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
+  3. ***Calculate ROAS***: 
+     - Divide 7-day rolling revenue / 7-day rolling cost (roas CTE).
+  4. ***Compare to prior week***: 
+     - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
+  5. ***Final output***: 
+     - Current vs previous ROAS side by side, plus % change.
 - **✔️ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
 > 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
