@@ -69,6 +69,10 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
      - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
   5. ***Final output***: 
      - Current vs previous ROAS side by side, plus % change.
+
+- <details>
+<summary>View SQL code</summary>
+
 ```sql
 WITH daily AS (
   SELECT
@@ -117,6 +121,8 @@ FROM final
 WHERE rn = 1
   AND prev_roas_7d IS NOT NULL;
 ```
+</details>
+
 - **✔️ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
 > 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
