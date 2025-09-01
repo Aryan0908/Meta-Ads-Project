@@ -128,19 +128,6 @@ WHERE rn = 1
 
 ### CPC anomaly detection (z-score)
 - **👉 Why**: Occasionally CPC spikes due to auction competition, audience saturation, or poor targeting. Detecting anomalies quickly prevents wasted spend.
-- **👉 How**:
-  1. ***Calculate z-scores***: 
-	- For each adset/day, compute z_score = (cpc - mean) / stddev (standarad_dev CTE).
-  2. ***Check overspend***: 
-	- Compare actual spend vs assigned budget and compute overspend % (overspend CTE).
-  3. ***Combine results***: 
-	- Join CPC anomalies with overspend data.
-  4. ***Flag severity***:
-	- Use a CASE expression to tag:
-		- Critical: High CPC + Overspend
-		- Check: CPC Normal + Overspend
-		- Check: CPC High + No Overspend
-		- Everything is Fine
 <details>
 <summary>View SQL Code</summary>
 
@@ -199,7 +186,19 @@ WHERE
 ORDER BY adset_id, date
 ```
 </details>
-
+- **👉 How**:
+  1. ***Calculate z-scores***: 
+	- For each adset/day, compute z_score = (cpc - mean) / stddev (standarad_dev CTE).
+  2. ***Check overspend***: 
+	- Compare actual spend vs assigned budget and compute overspend % (overspend CTE).
+  3. ***Combine results***: 
+	- Join CPC anomalies with overspend data.
+  4. ***Flag severity***:
+	- Use a CASE expression to tag:
+		- Critical: High CPC + Overspend
+		- Check: CPC Normal + Overspend
+		- Check: CPC High + No Overspend
+		- Everything is Fine
 - **✔️ Business value**: Detecting when the anomaly occured and it's z-score and detect the most probable cause i.e. overspend.
 
 ### Campaign funnel drop-offs & stage rates
