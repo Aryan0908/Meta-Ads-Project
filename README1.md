@@ -365,3 +365,301 @@ FROM new_tbl
   4. ***Final output***:
 	- drop_off_rate_percnt = (prev - current)/prev * 100
 	- Returns one row per (campaign, stage) showing % loss at that step
+
+## 9) CTR by Device
+- **🎯 Scope**: Conversions
+
+- **👉 What it answers**: Which devices (mobile, desktop, etc.) deliver the highest CTR for conversion campaigns?
+
+- **👉 Why it matters**: Optimizes spend toward best-performing devices.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+SELECT 
+	s.device,
+	ROUND(AVG(ctr),2) AS avg_ctr
+FROM campaigns AS c
+JOIN adsets AS s
+	ON s.campaign_id = c.campaign_id
+JOIN ads AS ad
+	ON ad.adset_id = s.adset_id
+JOIN performance AS p
+	ON p.ad_id = ad.ad_id
+WHERE
+	c.objective = 'conversions'
+GROUP BY s.device
+```
+</details>
+
+- **🛠️ How it's built**:
+  - Join: campaigns → adsets → ads → performance
+  - Group By: 'device'
+  - Aggregate: Average CTR rounded upto 2 decimal places
+
+## 10) Detecting Overspend
+- **🎯 Scope**: Global
+
+- **👉 What it answers**: Which campaigns spent more than their assigned daily budget?
+
+- **👉 Why it matters**:
+  - Usually meta overspends 10-15% of it's assigned budget.
+  - This query helps in detecting any major overspend.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+SELECT
+  s.campaign_id,
+  p.date,
+  SUM(p.cost)        AS total_spend,
+  SUM(s.daily_budget) AS total_budget,
+  (SUM(p.cost) - SUM(s.daily_budget)) AS overspend_amount
+FROM performance p
+JOIN ads a
+  ON p.ad_id = a.ad_id
+JOIN adsets s
+  ON a.adset_id = s.adset_id
+GROUP BY
+  s.campaign_id,
+  p.date
+HAVING
+  SUM(p.cost) > SUM(s.daily_budget);
+```
+</details>
+
+- **🛠️ How it's built**:
+  - Join: performance → ads → adsets
+  - Group By: campaign id, date
+  - Aggregate: Sum of daily cost and daily budget
+  - Calculating Overspend: SUM(cost) - SUM(daily_budget)
+  - Filter: Show entried where cost > daily budget
+
+## 11) Revenue by ad format
+- **🎯 Scope**: Conversions
+
+- **👉 What it answers**: Which ad formats (video, carousel, image) drive the most revenue in conversion campaigns?
+
+- **👉 Why it matters**: Guides creative format investment.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+SELECT
+  a.ad_format,
+  ROUND(AVG(p.revenue),2) AS avg_revenue
+FROM performance p
+JOIN ads a
+  ON p.ad_id = a.ad_id
+JOIN adsets s
+  ON a.adset_id = s.adset_id
+JOIN campaigns c
+  ON c.campaign_id = s.campaign_id
+WHERE
+  c.objective = 'conversions'
+GROUP BY
+  a.ad_format
+```
+
+- **🛠️ How it's built**:
+  - Join: performance → ads → adsets -> campaigns
+  - Group By: ad format
+  - Aggregate: Average revenue rounded upto 2 decimals
+
+## 12) Top Creative by adset
+- **🎯 Scope**: Global
+
+- **👉 What it answers**: Which creative delivers the highest CTR within each adset?
+
+- **👉 Why it matters**: Reveals best-performing creatives for scaling.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+WITH my_cte AS (SELECT
+  s.adset_id,
+  a.creative_name,
+  ROUND(AVG(p.ctr),2) AS avg_ctr
+FROM performance p
+JOIN ads a
+  ON p.ad_id = a.ad_id
+JOIN adsets s
+  ON a.adset_id = s.adset_id
+JOIN campaigns c
+  ON c.campaign_id = s.campaign_id
+GROUP BY
+  s.adset_id, a.creative_name
+),
+ranked_creatives  AS (
+SELECT 
+	adset_id,
+	creative_name,
+	avg_ctr,
+	ROW_NUMBER() OVER (PARTITION BY adset_id ORDER BY avg_ctr DESC) AS rank_num
+FROM my_cte
+)
+
+SELECT 
+	adset_id,
+	creative_name,
+	avg_ctr
+FROM ranked_creatives 
+WHERE rank_num = 1
+```
+</details>
+
+- **🛠️ How it's built**:
+  1. ***Build adset-level creative CTR totals:***:
+	- my_cte (cte): Join Performance → Ads → Adsets → Campaigns
+    - Group by: adset id, creative name
+	- Aggregate: Avergae CTR upto 2 decimal places
+  2. ***Rank creatives within each adset***:
+    - ranked_creatives (cte): ROW_NUMBER() PARTITION BY adset_id ORDER BY avg_ctr DESC
+	- Highest-CTR creative in each adset gets rank_num = 1
+  4. ***Final output***:
+	- Filter: WHERE rank_num = 1
+	- Return: one row per adset id with its best creative name and avg ctr
+
+## 13) Rolling 7-day ROAS
+- **🎯 Scope**: Conversion, Traffic
+
+- **👉 What it answers**: How does campaign ROAS trend over the last 7 days compared to the prior 7 days?
+
+- **👉 Why it matters**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+WITH daily AS (
+  SELECT
+    c.campaign_id,
+    p.date,
+    SUM(p.revenue) AS day_revenue,
+    SUM(p.cost) AS day_cost
+  FROM performance p
+  JOIN ads a ON a.ad_id = p.ad_id
+  JOIN adsets s ON s.adset_id = a.adset_id
+  JOIN campaigns c ON c.campaign_id = s.campaign_id
+  WHERE c.objective IN ('conversions','traffic')
+  GROUP BY c.campaign_id, p.date
+),
+rolling AS (
+  SELECT
+    campaign_id,
+    date,
+    SUM(day_revenue) OVER (PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS rev_7d,
+    SUM(day_cost) OVER (PARTITION BY campaign_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cost_7d
+  FROM daily
+),
+roas AS (
+  SELECT
+    campaign_id,
+    date,
+    CASE WHEN cost_7d = 0 THEN NULL ELSE rev_7d / cost_7d END AS roas_7d
+  FROM rolling
+),
+final AS (
+  SELECT
+    campaign_id,
+    date,
+    roas_7d,
+    LAG(roas_7d, 7) OVER (PARTITION BY campaign_id ORDER BY date) AS prev_roas_7d,
+    ROW_NUMBER() OVER (PARTITION BY campaign_id ORDER BY date DESC) AS rn
+  FROM roas
+)
+
+SELECT
+  campaign_id,
+  date,
+  ROUND(roas_7d, 2) AS current_week_roas,
+  ROUND(prev_roas_7d, 2) AS prev_week_roas,
+  ROUND( (roas_7d - prev_roas_7d) / NULLIF(prev_roas_7d, 0) * 100, 2) AS seven_day_roas_change
+FROM final
+WHERE rn = 1
+  AND prev_roas_7d IS NOT NULL;
+```
+</details>
+
+- **🛠️ How it's built**:
+  1. ***Build Daily Totals***:
+	 - daily (CTE): Join Performance → Ads → Adsets → Campaigns
+	 - Group by: campaign id, date
+	 - Aggregate: Sum of spend and revenue
+  2. ***Apply rolling window***: 
+     - rolling (CTE): Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
+  3. ***Calculate ROAS***: 
+     - roas (CTE): Divide 7-day rolling revenue / 7-day rolling cost.
+  4. ***Compare to prior week***: 
+     - final (CTE): Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period.
+  5. ***Final output***: 
+     - Current vs previous ROAS side by side, plus % change.
+
+## 14) Cross-objective creative lift
+- **🎯 Scope**: Global
+
+- **👉 What it answers**: How did creative CTR change between its first 7 days vs most recent 7 days?
+
+- **👉 Why it matters**: Helps detect fatigue or creative improvement.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+WITH my_cte AS (
+SELECT 
+	a.creative_name,
+	p.date,
+	AVG(p.ctr) OVER (PARTITION BY a.creative_name ORDER BY p.date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW ) AS avg_ctr
+FROM performance p
+JOIN ads a
+ON a.ad_id = p.ad_id
+JOIN adsets s
+ON s.adset_id = a.adset_id
+JOIN campaigns c
+ON c.campaign_id = s.campaign_id
+ORDER BY a.creative_name ASC
+),
+avg_rolling_ctr AS (
+	SELECT
+		creative_name,
+		date,
+		rolling_avg,
+		row_num,
+		MAX(row_num) OVER(PARTITION BY creative_name) AS max_date_num
+	FROM(
+		SELECT 
+			creative_name,
+			date,
+			avg_ctr AS rolling_avg,
+			ROW_NUMBER() OVER (PARTITION BY creative_name ORDER BY date ASC) AS row_num
+		FROM my_cte
+	)
+),
+filtered_dates AS (
+	SELECT
+		creative_name,
+		date,
+		rolling_avg,
+		LAG(rolling_avg) OVER (PARTITION BY creative_name ORDER BY date) AS prev_rolling_avg,
+		row_num
+	FROM avg_rolling_ctr
+	WHERE
+		max_date_num > 14
+		AND
+		(row_num = 7
+		OR 
+		row_num = max_date_num)
+)
+
+SELECT 
+	creative_name,
+	ROUND(((rolling_avg-prev_rolling_avg)/prev_rolling_avg)*100,2) AS creative_life_perc
+FROM filtered_dates
+WHERE prev_rolling_avg IS NOT NULL
+```
+</details>
