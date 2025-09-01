@@ -56,7 +56,7 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 
 ## 🔹 Deep Dives — SQL
 
-### Rolling 7-day ROAS Change
+### 1) Rolling 7-day ROAS Change
 - **👉 Why**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
 <details>
 <summary><b>View SQL code</b></summary>
@@ -123,10 +123,10 @@ WHERE rn = 1
   5. ***Final output***: 
      - Current vs previous ROAS side by side, plus % change.
 
-- **✔️ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
+- **✅ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
 > 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
-### CPC anomaly detection (z-score)
+### 2) CPC anomaly detection (z-score)
 - **👉 Why**: Occasionally CPC spikes due to auction competition, audience saturation, or poor targeting. Detecting anomalies quickly prevents wasted spend.
 <details>
 <summary>View SQL Code</summary>
@@ -186,6 +186,7 @@ WHERE
 ORDER BY adset_id, date
 ```
 </details>
+
 - **👉 How**:
   1. ***Calculate z-scores***: 
 	- For each adset/day, compute z_score = (cpc - mean) / stddev (standarad_dev CTE).
@@ -199,26 +200,14 @@ ORDER BY adset_id, date
 		- Check: CPC Normal + Overspend
 		- Check: CPC High + No Overspend
 		- Everything is Fine
-- **✔️ Business value**: Detecting when the anomaly occured and it's z-score and detect the most probable cause i.e. overspend.
 
-### Campaign funnel drop-offs & stage rates
+- **✅ Business value**: Detecting when the anomaly occured and it's z-score and detect the most probable cause i.e. overspend.
+
+### 3) Campaign funnel drop-offs & stage rates
 - **👉 Why**: Not all campaigns fail at the same stage — some lose clicks at the landing page, others lose buyers at checkout. This query highlights where users drop out of the funnel.
-- **👉 How**:
-  1. ***Build campaign-level totals***:
-	- default_table: Join Performance → Ads → Adsets → Campaigns
-    - Filter to objective = conversions
-	- Aggregate view_content, add_to_cart, initiate_checkout, purchase
-  2. ***Unpivot into stage tables***:
-    - view_content_tbl, atc_tbl, initiate_checkout_tbl, purchase_tbl
-	- Convert wide totals → long format with (campaign, stage, total_events)
-	- Attach a stage order: 1=View Content → 2=ATC → 3=Checkout → 4=Purchase
-  3. ***Union and compute previous stage***:
-	- new_tbl: UNION ALL stage tables
-	- Use LAG(total_events) to fetch previous stage total per campaign
-	- Guard with COALESCE() for the first stage
-  4. ***Final output***:
-	- drop_off_rate_percnt = (prev - current)/prev * 100
-	- Returns one row per (campaign, stage) showing % loss at that step
+<details>
+<summary><b>View SQL code</b></summary>
+
 ```sql
 With default_table AS (
 SELECT
@@ -294,7 +283,26 @@ SELECT
 
 FROM new_tbl
 ```
-- **✔️ Business value**: This explains where company is loosing it's customers. For eg.
+</details>
+
+- **👉 How**:
+  1. ***Build campaign-level totals***:
+	- default_table: Join Performance → Ads → Adsets → Campaigns
+    - Filter to objective = conversions
+	- Aggregate view_content, add_to_cart, initiate_checkout, purchase
+  2. ***Unpivot into stage tables***:
+    - view_content_tbl, atc_tbl, initiate_checkout_tbl, purchase_tbl
+	- Convert wide totals → long format with (campaign, stage, total_events)
+	- Attach a stage order: 1=View Content → 2=ATC → 3=Checkout → 4=Purchase
+  3. ***Union and compute previous stage***:
+	- new_tbl: UNION ALL stage tables
+	- Use LAG(total_events) to fetch previous stage total per campaign
+	- Guard with COALESCE() for the first stage
+  4. ***Final output***:
+	- drop_off_rate_percnt = (prev - current)/prev * 100
+	- Returns one row per (campaign, stage) showing % loss at that step
+
+- **✅ Business value**: This explains where company is loosing it's customers. For eg.
 	- Large drop from “Add To Cart → Checkout” = pricing or shipping issue
 	- High “View Content” but low “Add To Cart” = weak product relevance or creatives
 This helps marketers pinpoint the weakest funnel stage and fix it first.
