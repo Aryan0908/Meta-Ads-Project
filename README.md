@@ -310,7 +310,9 @@ This helps marketers pinpoint the weakest funnel stage and fix it first.
 ## 🔹 Deep Dives — DAX
 ### Best Week (by ROAS)
 - **👉 Why**: Surface the single strongest week to highlight peak performance in the period
-- **👉 How**: Ranks weeks by [Roas] and returns the week with the highest value
+<details>
+<summarise><b>View DAX code</b></summarise>
+
 ```DAX
 BestWeek =
 CALCULATE(
@@ -325,10 +327,15 @@ CALCULATE(
     )
 )
 ```
+</details>
+
+- **👉 How**: Ranks weeks by [Roas] and returns the week with the highest value
 
 ### Rolling ROAS (7 days)
 - **👉 Why**: To keep up ROAS fluctuations and trends
-- **👉 How**: Averages daily [Roas] across the last 7 days.
+<details>
+<summarise><b>View DAX code</b></summarise>
+
 ```DAX
 7DaysRollingRoas =
 AVERAGEX(
@@ -336,12 +343,15 @@ AVERAGEX(
     [Roas]
 )
 ```
+</details>
+
+- **👉 How**: Averages daily [Roas] across the last 7 days.
 
 ### ROAS Month-over-Month
 - **👉 Why**: Track ROAS trend month over month with explicit date windows
-- **👉 How**:
-	1. ***Current month***: Uses MAX('Date'[MonthNum]) to select the active month
-	2. ***Previous month***: calculates start/end boundaries with EOMONTH
+<details>
+<summarise><b>View DAX code</b></summarise>
+
 ```DAX
 RoasCurrentMonth =
 VAR maxMonth = MAX('Date'[MonthNum])
@@ -376,9 +386,17 @@ RETURN
         "0.0% MoM"
     )
 ```
+</details>
+
+- **👉 How**:
+	1. ***Current month***: Uses MAX('Date'[MonthNum]) to select the active month
+	2. ***Previous month***: calculates start/end boundaries with EOMONTH
 
 ### Metric Selector + Dynamic Title
 - **👉 Why**: One visual toggles CTR/CPC/ROAS/CPL
+<details>
+<summarise><b>View DAX code</b></summarise>
+
 ```DAX
   Selected Metric Value =
 VAR m = SELECTEDVALUE ( MetricSelector[Metric], "ROAS" )
@@ -393,7 +411,7 @@ RETURN
 
 Dynamic Title = "Performance by " & SELECTEDVALUE ( MetricSelector[Metric], "ROAS" )
 ```
-
+</details>
 
 ---
 
