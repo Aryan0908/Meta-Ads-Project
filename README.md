@@ -110,6 +110,7 @@ WHERE rn = 1
   AND prev_roas_7d IS NOT NULL;
 ```
 </details>
+
 - **👉 How**:
   1. ***Build Daily Totals***:
 	 - Aggregate spend and revenue by campaign/date (daily CTE).
@@ -121,6 +122,7 @@ WHERE rn = 1
      - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period (final CTE).
   5. ***Final output***: 
      - Current vs previous ROAS side by side, plus % change.
+
 - **✔️ Business value**: Helps marketers avoid overreacting to noisy daily ROAS and instead make budget decisions based on sustained week-over-week performance.
 > 💡 Note for reviewers: This query is specifically designed for campaigns with conversion and traffic campaigns.
 
