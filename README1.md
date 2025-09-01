@@ -463,6 +463,7 @@ WHERE
 GROUP BY
   a.ad_format
 ```
+</details>
 
 - **🛠️ How it's built**:
   - Join: performance → ads → adsets -> campaigns
