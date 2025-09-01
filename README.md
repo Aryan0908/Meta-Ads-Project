@@ -311,7 +311,7 @@ This helps marketers pinpoint the weakest funnel stage and fix it first.
 ### Best Week (by ROAS)
 - **👉 Why**: Surface the single strongest week to highlight peak performance in the period
 <details>
-<summarise><b>View DAX code</b></summarise>
+<summary><b>View DAX code</b></summary>
 
 ```DAX
 BestWeek =
@@ -334,7 +334,7 @@ CALCULATE(
 ### Rolling ROAS (7 days)
 - **👉 Why**: To keep up ROAS fluctuations and trends
 <details>
-<summarise><b>View DAX code</b></summarise>
+<summary><b>View DAX code</b></summary>
 
 ```DAX
 7DaysRollingRoas =
@@ -350,7 +350,7 @@ AVERAGEX(
 ### ROAS Month-over-Month
 - **👉 Why**: Track ROAS trend month over month with explicit date windows
 <details>
-<summarise><b>View DAX code</b></summarise>
+<summary><b>View DAX code</b></summary>
 
 ```DAX
 RoasCurrentMonth =
@@ -395,7 +395,7 @@ RETURN
 ### Metric Selector + Dynamic Title
 - **👉 Why**: One visual toggles CTR/CPC/ROAS/CPL
 <details>
-<summarise><b>View DAX code</b></summarise>
+<summary><b>View DAX code</b></summary>
 
 ```DAX
   Selected Metric Value =
