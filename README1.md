@@ -31,7 +31,7 @@ Creates daily fact table with important metrics: impressions, cicks, cost, reven
 - **👉 Why it matters**: A single, reusable base eliminates repeating joins queries and BI
 
 <details>
-<summary><b>▶ View SQL</b></summary>
+<summary><b><i> View SQL</i></b></summary>
 
 ```sql
 SELECT
