@@ -23,12 +23,12 @@
 ---
 
 ## 1) Daily KPI’s (foundation view)
-- **Scope**: Global
+- **🎯 Scope**: Global
 
-- **What it answers**: 
+- **👉 What it answers**: 
 Creates daily fact table with important metrics: impressions, cicks, cost, revenue, view content, add-to-cart, initiate checkout, purchase, form view, ctr, cpc, cpm, roas, cpl
 
-- **Why it matters**: A single, reusable base eliminates repeating joins queries and BI
+- **👉 Why it matters**: A single, reusable base eliminates repeating joins queries and BI
 
 <details>
 <summary><b>▶️ View SQL</b></summary>
@@ -63,15 +63,18 @@ GROUP BY 1,2,3,4;
 ```
 </details>
 
-- **How it's built**:
+- **🛠️ How it's built**:
   - Join: performance → ads → adsets → campaigns
   - Aggregate daily: SUM for numbers, COALESCE nulls to 0 to eliminate errors
   - Grouping: (date, ad_id, adset_id, campaign_id)
 
 ## 2) Spend and Clicks by Objective
-- **What it answers**: Spending accross different intent/objective.
+- **🎯 Scope**: Global
 
-- **Scope**: Global
+- **👉 What it answers**: Spending accross different intent/objective.
+
+- **👉 Why it matters**: Helps in knowing where the budget is being allocated and take decisions accordingly
+
 <details>
 <summary><b>▶️ View SQL</b></summary>
 
@@ -92,18 +95,15 @@ ORDER BY total_clicks DESC
 ```
 </details>
 
-- **Why it matters**: 
-Helps in knowing where the budget is being allocated and take decisions accordingly
-
-- **How it's built**:
+- **🛠️ How it's built**:
   - Join up the chain, group by objective, aggregate clicks & cost, and sort
 
 ## 3) Top 3 campaigns by revenue
-- **Scope**: Conversions and Traffic
+- **🎯 Scope**: Conversions and Traffic
 
-- **What it answers**: Which campaigns generated the most revenue, so we can identify the top performers to focus and scale.
+- **👉 What it answers**: Which campaigns generated the most revenue, so we can identify the top performers to focus and scale.
 
-- **Why it matters**: 
+- **👉 Why it matters**: 
   - Prioritizes campaigns that drive actual business value, not just clicks and impressions.
   - We can check which creatives and demographics are being used in them and plan future campaigns accordingly
 
@@ -129,17 +129,17 @@ LIMIT 3
 ```
 </details>
 
-- **How it's built**:
+- **🛠️ How it's built**:
   - Filter to conversions and traffic campaigns
   - Aggregate revenue per campaign
   - Order descending and return top 3
 
 ## 4) CTR by Age Ranger
-- **Scope**: Traffic
+- **🎯 Scope**: Traffic
 
-- **What it answers**: Which age group produces the highest click-through rate for traffic campaigns?
+- **👉 What it answers**: Which age group produces the highest click-through rate for traffic campaigns?
 
-- **Why it matters**: Reveals high-CTR audiences for reducing CPC.
+- **👉 Why it matters**: Reveals high-CTR audiences for reducing CPC.
 
 <details>
 <summary><b>▶️ View SQL</b></summary>
@@ -162,17 +162,17 @@ ORDER BY avg_ctr DESC
 ```
 </details>
 
-- **How it's built**:
+- **🛠️ How it's built**:
   - Filter campaigns with objective='traffic'
   - Group by 'age range'
   - Average CTR per age range
 
 ## 5) Campaign Status
-- **Scope**: Global
+- **🎯 Scope**: Global
 
-- **What it answers**: How many campaigns are currently active vs paused?
+- **👉 What it answers**: How many campaigns are currently active vs paused?
 
-- **Why it matters**: Quick health check on campaign management.
+- **👉 Why it matters**: Quick health check on campaign management.
 
 <details>
 <summary><b>▶️ View SQL</b></summary>
@@ -187,11 +187,11 @@ GROUP BY c.status
 </details>
 
 ## 6) Ads with 0 impressions
-- **Scope**: Global
+- **🎯 Scope**: Global
 
-- **What it answers**: Which ads received no delivery?
+- **👉 What it answers**: Which ads received no delivery?
 
-- **Why it matters**: There can be many reasons why the ads are not receiving impressions. By filtering these ads we can look for possible causes
+- **👉 Why it matters**: There can be many reasons why the ads are not receiving impressions. By filtering these ads we can look for possible causes
 
 <details>
 <summary><b>▶️ View SQL</b></summary>
@@ -212,14 +212,14 @@ HAVING SUM(p.impressions) = 0
 ```
 </details>
 
-- **How it's built**: Sum of impressions grouped by 'ad id'
+- **🛠️ How it's built**: Sum of impressions grouped by 'ad id'
 
 ## 7) Cost Per Lead
-- **Scope**: Lead
+- **🎯 Scope**: Lead
 
-- **What it answers**: What is the cost per lead (CPL) for each lead campaign?
+- **👉 What it answers**: What is the cost per lead (CPL) for each lead campaign?
 
-- **Why it matters**: Determining which settings (demographics and creatives) are generating cheaper leads.
+- **👉 Why it matters**: Determining which settings (demographics and creatives) are generating cheaper leads.
 
 <details>
 <summary><b>▶️ View SQL</b></summary>
