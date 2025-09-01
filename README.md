@@ -135,6 +135,9 @@ WHERE rn = 1
 		- Check: CPC Normal + Overspend
 		- Check: CPC High + No Overspend
 		- Everything is Fine
+<details>
+<summary>View SQL Code</summary>
+
 ```sql
 WITH standarad_dev AS (
 	SELECT
@@ -189,6 +192,8 @@ WHERE
 	z_score > 2
 ORDER BY adset_id, date
 ```
+</details>
+
 - **✔️ Business value**: Detecting when the anomaly occured and it's z-score and detect the most probable cause i.e. overspend.
 
 ### Campaign funnel drop-offs & stage rates
