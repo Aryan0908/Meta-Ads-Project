@@ -59,7 +59,7 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ### Rolling 7-day ROAS Change
 - **👉 Why**: Daily ROAS fluctuates a lot due to many factors. A 7-day rolling window smooths this volatility and shows whether ROI is improving or dropping week over week.
 <details>
-<summary>View SQL code</summary>
+<summary><b>View SQL code</b></summary>
 
 ```sql
 WITH daily AS (
