@@ -66,7 +66,7 @@ GROUP BY 1,2,3,4;
 - **🛠️ How it's built**:
   - Join: performance → ads → adsets → campaigns
   - Aggregate daily: SUM for numbers, COALESCE nulls to 0 to eliminate errors
-  - Grouping: (date, ad_id, adset_id, campaign_id)
+  - Grouping: date, ad_id, adset_id, campaign_id
 
 ## 2) Spend and Clicks by Objective
 - **🎯 Scope**: Global
@@ -131,7 +131,7 @@ LIMIT 3
 
 - **🛠️ How it's built**:
   - Filter: campaign objectives= 'conversions' & 'traffic'
-  - Aggregate revenue per campaign
+  - Aggregate: Sum of revenue per campaign rounded upto 2 decimal places
   - Top 3: Order descending and limit upto 3 results
 
 ## 4) CTR by Age Range
@@ -165,8 +165,8 @@ ORDER BY avg_ctr_perc DESC
 - **🛠️ How it's built**:
   - Filter: campaigns with objective='traffic'
   - Group by: 'age range'
-  - Average CTR per age range
-  - Order By: avg_ctr_perc decending
+  - Aggregate: Average CTR per age range, rounded upto 2 decimal places
+  - Order By: avg_ctr_perc desending
 
 ## 5) Campaign Status
 - **🎯 Scope**: Global
@@ -261,3 +261,107 @@ LIMIT 5
   - Group By: 'adset id' and other demographics
   - Calculate CPL: SUM(p.cost)/SUM(p.lead) and round the result to 2 digits
   - Top 5: Order by CPL and limit results to 5
+
+## 8) Coversion Funnel-Drop Off
+- **🎯 Scope**: Conversions
+
+- **👉 What it answers**: At which stage are we loosing our customer.
+
+- **👉 Why it matters**: Knowing the stage where the issue is we can work towards a solution to reduce drop-offs.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+With default_table AS (
+SELECT
+	c.campaign_id,
+	SUM(p.view_content) AS view_content,
+	SUM(p.add_to_cart) AS add_to_cart,
+	SUM(p.initiate_checkout) AS initiate_checkout,
+	SUM(p.purchase) AS purchase
+FROM performance p
+JOIN ads a ON a.ad_id = p.ad_id
+JOIN adsets s ON s.adset_id = a.adset_id
+JOIN campaigns c ON c.campaign_id = s.campaign_id
+WHERE
+	c.objective = 'conversions'
+GROUP BY c.campaign_id
+),
+view_content_tbl AS (
+SELECT
+	campaign_id,
+	'View Content' AS conversion_event,
+	COALESCE(view_content,0) AS total_events,
+	1 AS stager
+FROM default_table
+),
+atc_tbl AS (
+SELECT
+	campaign_id,
+	'Add To Cart' AS conversion_event,
+	COALESCE(add_to_cart,0) AS total_events,
+	2 AS stager
+FROM default_table
+),
+initiate_checkout_tbl AS (
+SELECT
+	campaign_id,
+	'Initiate Checkout' AS conversion_event,
+	COALESCE(initiate_checkout,0) AS total_events,
+	3 AS stager
+FROM default_table
+),
+purchase_tbl AS (
+SELECT
+	campaign_id,
+	'Purchase' AS conversion_event,
+	COALESCE(purchase,0) AS total_events,
+	4 AS stager
+FROM default_table
+),
+new_tbl AS (
+SELECT campaign_id, conversion_event, total_events, 
+COALESCE(
+	LAG(total_events) OVER (PARTITION BY campaign_id ORDER BY stager ASC),
+	0) AS lag_col 
+FROM
+(SELECT * FROM view_content_tbl
+UNION ALL
+SELECT * FROM atc_tbl
+UNION ALL
+SELECT * FROM initiate_checkout_tbl
+UNION ALL
+SELECT * FROM purchase_tbl
+ORDER BY campaign_id DESC, stager ASC)
+)
+
+SELECT 
+	campaign_id,
+	conversion_event,
+	total_events,
+	CASE
+	     WHEN lag_col = 0 THEN 0
+	     ELSE ROUND(((lag_col - total_events)*100.00/lag_col),2)
+	END AS drop_off_rate_percnt
+
+FROM new_tbl
+```
+</details>
+
+- **🛠️ How it's built**:
+  1. ***Build campaign-level totals***:
+	- default_table: Join Performance → Ads → Adsets → Campaigns
+    - Filter: objective = conversions
+	- Aggregate: Sum of view_content, add_to_cart, initiate_checkout, purchase
+  2. ***Unpivot into stage tables***:
+    - view_content_tbl, atc_tbl, initiate_checkout_tbl, purchase_tbl
+	- Convert wide totals → long format with (campaign, stage, total_events)
+	- Attach a stage order: 1=View Content → 2=ATC → 3=Checkout → 4=Purchase
+  3. ***Union and compute previous stage***:
+	- new_tbl: UNION ALL stage tables
+	- Use LAG(total_events) to fetch previous stage total per campaign
+	- Guard with COALESCE() for the first stage
+  4. ***Final output***:
+	- drop_off_rate_percnt = (prev - current)/prev * 100
+	- Returns one row per (campaign, stage) showing % loss at that step
