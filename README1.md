@@ -31,7 +31,7 @@ Creates daily fact table with important metrics: impressions, cicks, cost, reven
 - **👉 Why it matters**: A single, reusable base eliminates repeating joins queries and BI
 
 <details>
-<summary><b><i> View SQL</i></b></summary>
+<summary><b> View SQL</b></summary>
 
 ```sql
 SELECT
@@ -130,11 +130,11 @@ LIMIT 3
 </details>
 
 - **🛠️ How it's built**:
-  - Filter to conversions and traffic campaigns
+  - Filter: campaign objectives= 'conversions' & 'traffic'
   - Aggregate revenue per campaign
-  - Order descending and return top 3
+  - Top 3: Order descending and limit upto 3 results
 
-## 4) CTR by Age Ranger
+## 4) CTR by Age Range
 - **🎯 Scope**: Traffic
 
 - **👉 What it answers**: Which age group produces the highest click-through rate for traffic campaigns?
@@ -158,14 +158,15 @@ JOIN performance AS p
 WHERE
 	c.objective = 'traffic'
 GROUP BY s.age_range
-ORDER BY avg_ctr DESC
+ORDER BY avg_ctr_perc DESC
 ```
 </details>
 
 - **🛠️ How it's built**:
-  - Filter campaigns with objective='traffic'
-  - Group by 'age range'
+  - Filter: campaigns with objective='traffic'
+  - Group by: 'age range'
   - Average CTR per age range
+  - Order By: avg_ctr_perc decending
 
 ## 5) Campaign Status
 - **🎯 Scope**: Global
@@ -212,12 +213,19 @@ HAVING SUM(p.impressions) = 0
 ```
 </details>
 
-- **🛠️ How it's built**: Sum of impressions grouped by 'ad id'
+- **🛠️ How it's built**: 
+  - Join: campaigns → adsets → ads → performance
+  - Group By: 'ad id'
+  - Aggregate: Sum of impressions grouped by 'ad id'
+  - Filter: total_impressions = 0
 
-## 7) Cost Per Lead
+## 7) Cost Per Lead (CPL)
 - **🎯 Scope**: Lead
 
-- **👉 What it answers**: What is the cost per lead (CPL) for each lead campaign?
+- **👉 What it answers**: 
+	- What is the cost per lead (CPL) for each lead adset?
+	- Top 5 adset with lowest CPL
+	- Demographics of best adsets
 
 - **👉 Why it matters**: Determining which settings (demographics and creatives) are generating cheaper leads.
 
@@ -226,10 +234,11 @@ HAVING SUM(p.impressions) = 0
 
 ```sql
 SELECT 
-	c.campaign_id,
+	s.adset_id,
 	ROUND((SUM(p.cost)/SUM(p.lead)),2) AS CPL,
 	s.age_range,
 	s.placement,
+	s.gender,
 	s.country
 FROM campaigns AS c
 JOIN adsets AS s
@@ -240,6 +249,15 @@ JOIN performance AS p
 	ON p.ad_id = ad.ad_id
 WHERE
 	c.objective = 'leads'
-GROUP BY c.campaign_id
+GROUP BY s.adset_id, s.age_range, s.placement, s.gender, s.country
+ORDER BY ROUND((SUM(p.cost)/SUM(p.lead)),2) ASC
+LIMIT 5
 ```
 </details>
+
+- **🛠️ How it's built**:
+  - Join: campaigns → adsets → ads → performance
+  - Filter: campaigns with objective='leads'
+  - Group By: 'adset id' and other demographics
+  - Calculate CPL: SUM(p.cost)/SUM(p.lead) and round the result to 2 digits
+  - Top 5: Order by CPL and limit results to 5
