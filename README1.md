@@ -90,6 +90,7 @@ JOIN performance AS p
 GROUP BY c.objective
 ORDER BY total_clicks DESC
 ```
+</details>
 
 - **Why it matters**: 
 Helps in knowing where the budget is being allocated and take decisions accordingly
@@ -126,6 +127,7 @@ GROUP BY c.campaign_name
 ORDER BY total_revenue DESC
 LIMIT 3
 ```
+</details>
 
 - **How it's built**:
   - Filter to conversions and traffic campaigns
@@ -158,6 +160,7 @@ WHERE
 GROUP BY s.age_range
 ORDER BY avg_ctr DESC
 ```
+</details>
 
 - **How it's built**:
   - Filter campaigns with objective='traffic'
