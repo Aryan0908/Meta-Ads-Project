@@ -308,7 +308,7 @@ FROM new_tbl
 This helps marketers pinpoint the weakest funnel stage and fix it first.
 
 ## 🔹 Deep Dives — DAX
-### Best Week (by ROAS)
+### 1) Best Week (by ROAS)
 - **👉 Why**: Surface the single strongest week to highlight peak performance in the period
 <details>
 <summary><b>View DAX code</b></summary>
@@ -331,7 +331,7 @@ CALCULATE(
 
 - **👉 How**: Ranks weeks by [Roas] and returns the week with the highest value
 
-### Rolling ROAS (7 days)
+### 2) Rolling ROAS (7 days)
 - **👉 Why**: To keep up ROAS fluctuations and trends
 <details>
 <summary><b>View DAX code</b></summary>
@@ -347,7 +347,7 @@ AVERAGEX(
 
 - **👉 How**: Averages daily [Roas] across the last 7 days.
 
-### ROAS Month-over-Month
+### 3)ROAS Month-over-Month
 - **👉 Why**: Track ROAS trend month over month with explicit date windows
 <details>
 <summary><b>View DAX code</b></summary>
@@ -392,7 +392,7 @@ RETURN
 	1. ***Current month***: Uses MAX('Date'[MonthNum]) to select the active month
 	2. ***Previous month***: calculates start/end boundaries with EOMONTH
 
-### Metric Selector + Dynamic Title
+### 4) Metric Selector + Dynamic Title
 - **👉 Why**: One visual toggles CTR/CPC/ROAS/CPL
 <details>
 <summary><b>View DAX code</b></summary>
