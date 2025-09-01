@@ -31,7 +31,7 @@ Creates daily fact table with important metrics: impressions, cicks, cost, reven
 - **👉 Why it matters**: A single, reusable base eliminates repeating joins queries and BI
 
 <details>
-<summary><b>▶🔍 View SQL</b></summary>
+<summary><b>▶ View SQL</b></summary>
 
 ```sql
 SELECT
@@ -76,7 +76,7 @@ GROUP BY 1,2,3,4;
 - **👉 Why it matters**: Helps in knowing where the budget is being allocated and take decisions accordingly
 
 <details>
-<summary><b>🔍 View SQL</b></summary>
+<summary><b> View SQL</b></summary>
 
 ```sql
 SELECT 
@@ -108,7 +108,7 @@ ORDER BY total_clicks DESC
   - We can check which creatives and demographics are being used in them and plan future campaigns accordingly
 
 <details>
-<summary><b>🔍 View SQL</b></summary>
+<summary><b> View SQL</b></summary>
 
 ```sql
 SELECT 
@@ -142,7 +142,7 @@ LIMIT 3
 - **👉 Why it matters**: Reveals high-CTR audiences for reducing CPC.
 
 <details>
-<summary><b>🔍 View SQL</b></summary>
+<summary><b> View SQL</b></summary>
 
 ```sql
 SELECT 
@@ -175,7 +175,7 @@ ORDER BY avg_ctr DESC
 - **👉 Why it matters**: Quick health check on campaign management.
 
 <details>
-<summary><b>🔍 View SQL</b></summary>
+<summary><b> View SQL</b></summary>
 
 ```sql
 SELECT 
@@ -194,7 +194,7 @@ GROUP BY c.status
 - **👉 Why it matters**: There can be many reasons why the ads are not receiving impressions. By filtering these ads we can look for possible causes
 
 <details>
-<summary><b>🔍 View SQL</b></summary>
+<summary><b> View SQL</b></summary>
 
 ```sql
 SELECT 
@@ -222,7 +222,7 @@ HAVING SUM(p.impressions) = 0
 - **👉 Why it matters**: Determining which settings (demographics and creatives) are generating cheaper leads.
 
 <details>
-<summary><b>🔍 View SQL</b></summary>
+<summary><b> View SQL</b></summary>
 
 ```sql
 SELECT 
