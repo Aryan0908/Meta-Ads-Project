@@ -351,15 +351,17 @@ FROM new_tbl
 
 - **🛠️ How it's built**:
   1. ***Build campaign-level totals***:
-	- default_table: Join Performance → Ads → Adsets → Campaigns
+	- default_table (CTE)
+	- Join: Performance → Ads → Adsets → Campaigns
     - Filter: objective = conversions
 	- Aggregate: Sum of view_content, add_to_cart, initiate_checkout, purchase
   2. ***Unpivot into stage tables***:
-    - view_content_tbl, atc_tbl, initiate_checkout_tbl, purchase_tbl
+    - view_content_tbl, atc_tbl, initiate_checkout_tbl, purchase_tbl (CTE's)
 	- Convert wide totals → long format with (campaign, stage, total_events)
 	- Attach a stage order: 1=View Content → 2=ATC → 3=Checkout → 4=Purchase
   3. ***Union and compute previous stage***:
-	- new_tbl: UNION ALL stage tables
+	- new_tbl (CTE) 
+	- UNION ALL stage tables
 	- Use LAG(total_events) to fetch previous stage total per campaign
 	- Guard with COALESCE() for the first stage
   4. ***Final output***:
@@ -515,11 +517,13 @@ WHERE rank_num = 1
 
 - **🛠️ How it's built**:
   1. ***Build adset-level creative CTR totals:***:
-	- my_cte (cte): Join Performance → Ads → Adsets → Campaigns
+	- my_cte (CTE)
+	- Join: Performance → Ads → Adsets → Campaigns
     - Group by: adset id, creative name
 	- Aggregate: Avergae CTR upto 2 decimal places
   2. ***Rank creatives within each adset***:
-    - ranked_creatives (cte): ROW_NUMBER() PARTITION BY adset_id ORDER BY avg_ctr DESC
+    - ranked_creatives (CTE)
+	- ROW_NUMBER() PARTITION BY adset_id ORDER BY avg_ctr DESC
 	- Highest-CTR creative in each adset gets rank_num = 1
   4. ***Final output***:
 	- Filter: WHERE rank_num = 1
@@ -588,15 +592,19 @@ WHERE rn = 1
 
 - **🛠️ How it's built**:
   1. ***Build Daily Totals***:
-	 - daily (CTE): Join Performance → Ads → Adsets → Campaigns
+	 - daily (CTE)
+	 - Join: Performance → Ads → Adsets → Campaigns
 	 - Group by: campaign id, date
 	 - Aggregate: Sum of spend and revenue
   2. ***Apply rolling window***: 
-     - rolling (CTE): Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
+     - rolling (CTE)
+	 - Use SUM(...) OVER (ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) from (daily CTE) to calculate 7-day spend and revenue (rolling CTE).
   3. ***Calculate ROAS***: 
-     - roas (CTE): Divide 7-day rolling revenue / 7-day rolling cost.
+     - roas (CTE)
+	 - Divide 7-day rolling revenue / 7-day rolling cost.
   4. ***Compare to prior week***: 
-     - final (CTE): Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period.
+     - final (CTE)
+	 - Use LAG(roas_7d, 7) to fetch ROAS from the previous 7-day period.
   5. ***Final output***: 
      - Current vs previous ROAS side by side, plus % change.
 
@@ -664,3 +672,105 @@ FROM filtered_dates
 WHERE prev_rolling_avg IS NOT NULL
 ```
 </details>
+
+- **🛠️ How it's built**:
+  1. ***Build creative-level rolling totals***:
+	- my_cte (CTE)
+	- Join: Performance → Ads → Adsets → Campaigns
+  	- Aggregate: 7-day moving average CTR per (creative_name, date) using AVG(ctr) OVER (PARTITION BY creative_name ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
+	- One row per creative/day with avg_ctr (rolling 7-day CTR)
+  2. ***Index timeline & carry rolling average***:
+	- avg_rolling_ctr (CTE)
+	- Add row_num per creative (ROW_NUMBER() ORDER BY date).
+	- Compute max_date_num per creative to know the series length
+  3. ***Select comparison checkpoints***:
+	- filtered_dates (CTE)
+	- Ensuring timeline: max_date_num > 14 (need at least 2 weeks)
+	- Early dates average: row_num = 7 (first complete 7-day average)
+	- Latest dates average: row_num = max_date_num (most recent 7-day average)
+	- Getting prev_rolling_avg via LAG(rolling_avg) so latest row carries both values
+  4. ***Final output***:
+	- creative_lift_pct = (latest_7d − early_7d) / early_7d × 100 (rounded to 2 decimals)
+	- Returns one row per creative with its % 
+
+## 15) CPC anomaly detection (z-score)
+- **🎯 Scope**: Global
+
+- **👉 What it answers**: Which were the days where we got unexpected metrics and what was the real reason behind it.
+
+- **👉 Why it matters**:  Occasionally CPC spikes due to auction competition, audience saturation, or poor targeting. Detecting anomalies quickly prevents wasted spend.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
+WITH standarad_dev AS (
+	SELECT
+		s.adset_id,
+		p.date,
+		ROUND(((p.cpc - AVG(p.cpc) OVER (PARTITION BY s.adset_id))/STDDEV(p.cpc) OVER (PARTITION BY s.adset_id)),2) AS z_score
+	FROM performance p
+	JOIN ads a
+		ON a.ad_id = p.ad_id
+	JOIN adsets s
+		ON s.adset_id = a.adset_id
+	JOIN campaigns c
+		ON c.campaign_id = s.campaign_id
+),
+overspend AS (
+	SELECT
+		s.adset_id,
+		p.date,
+		s.daily_budget,
+		SUM(p.cost) AS daily_cost,
+		ROUND(((SUM(p.cost)-s.daily_budget)/s.daily_budget)*100,2) AS overspend_perc
+	FROM performance p
+	JOIN ads a
+		ON a.ad_id = p.ad_id
+	JOIN adsets s
+		ON s.adset_id = a.adset_id
+	JOIN campaigns c
+		ON c.campaign_id = s.campaign_id
+	GROUP BY 
+		s.adset_id,
+		p.date,
+		s.daily_budget
+)
+
+SELECT 
+		stdev.adset_id,
+		stdev.date,
+		stdev.z_score,
+		os.daily_budget,
+		os.daily_cost,
+		os.overspend_perc,
+	CASE
+		WHEN stdev.z_score >= 2 AND os.overspend_perc > 0 THEN 'Critical: High CPC + Overspend'
+		WHEN stdev.z_score < 2 AND os.overspend_perc > 0 THEN 'Check: CPC Normal - Overspend'
+		WHEN stdev.z_score >= 2 AND os.overspend_perc <= 0 THEN 'Check: CPC High - No Overspend'
+		ELSE 'Everything is Fine!!'
+	END AS alert
+FROM standarad_dev AS stdev
+JOIN overspend os
+	ON os.adset_id = stdev.adset_id AND os.date = stdev.date
+WHERE
+	z_score > 2
+ORDER BY adset_id, date
+```
+
+- **🛠️ How it's built**:
+  1. ***Calculate z-scores***: 
+	- standarad_dev (CTE)
+	- For each adset/day, compute z_score = (cpc - mean) / stddev (standarad_dev CTE).
+  2. ***Check overspend***: 
+	- overspend (CTE)
+	- Compare actual spend vs assigned budget and compute overspend % (overspend CTE).
+  3. ***Combine results***: 
+	- Join CPC anomalies with overspend data.
+  4. ***Flag severity***:
+	- Use a CASE expression to tag:
+		- Critical: High CPC + Overspend
+		- Check: CPC Normal + Overspend
+		- Check: CPC High + No Overspend
+		- Everything is Fine
+
