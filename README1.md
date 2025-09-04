@@ -757,6 +757,7 @@ WHERE
 	z_score > 2
 ORDER BY adset_id, date
 ```
+</details>
 
 - **🛠️ How it's built**:
   1. ***Calculate z-scores***: 
