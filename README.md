@@ -111,7 +111,7 @@ WHERE rn = 1
 ```
 </details>
 
-- **👉 How**:
+- **🛠️ How it's built**:
   1. ***Build Daily Totals***:
 	 - daily (CTE): Join Performance → Ads → Adsets → Campaigns
 	 - Group by: campaign id, date
@@ -139,7 +139,6 @@ WITH standarad_dev AS (
 		s.adset_id,
 		p.date,
 		ROUND(((p.cpc - AVG(p.cpc) OVER (PARTITION BY s.adset_id))/STDDEV(p.cpc) OVER (PARTITION BY s.adset_id)),2) AS z_score
-
 	FROM performance p
 	JOIN ads a
 		ON a.ad_id = p.ad_id
@@ -167,6 +166,7 @@ overspend AS (
 		p.date,
 		s.daily_budget
 )
+
 SELECT 
 		stdev.adset_id,
 		stdev.date,
@@ -189,10 +189,12 @@ ORDER BY adset_id, date
 ```
 </details>
 
-- **👉 How**:
+- **🛠️ How it's built**:
   1. ***Calculate z-scores***: 
+	- standarad_dev (CTE)
 	- For each adset/day, compute z_score = (cpc - mean) / stddev (standarad_dev CTE).
   2. ***Check overspend***: 
+	- overspend (CTE)
 	- Compare actual spend vs assigned budget and compute overspend % (overspend CTE).
   3. ***Combine results***: 
 	- Join CPC anomalies with overspend data.
@@ -287,7 +289,7 @@ FROM new_tbl
 ```
 </details>
 
-- **👉 How**:
+- **🛠️ How it's built**:
   1. ***Build campaign-level totals***:
 	- default_table: Join Performance → Ads → Adsets → Campaigns
     - Filter to objective = conversions
@@ -331,7 +333,7 @@ CALCULATE(
 ```
 </details>
 
-- **👉 How**: Ranks weeks by [Roas] and returns the week with the highest value
+- **🛠️ How it's built**: Ranks weeks by [Roas] and returns the week with the highest value
 
 ### 2) Rolling ROAS (7 days)
 - **👉 Why**: To keep up ROAS fluctuations and trends
@@ -347,7 +349,7 @@ AVERAGEX(
 ```
 </details>
 
-- **👉 How**: Averages daily [Roas] across the last 7 days.
+- **🛠️ How it's built**: Averages daily [Roas] across the last 7 days.
 
 ### 3)ROAS Month-over-Month
 - **👉 Why**: Track ROAS trend month over month with explicit date windows
@@ -390,7 +392,7 @@ RETURN
 ```
 </details>
 
-- **👉 How**:
+- **🛠️ How it's built**:
 	1. ***Current month***: Uses MAX('Date'[MonthNum]) to select the active month
 	2. ***Previous month***: calculates start/end boundaries with EOMONTH
 
