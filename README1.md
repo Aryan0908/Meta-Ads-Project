@@ -359,6 +359,7 @@ JOIN rolling_roas AS rr
 	ON rr. device = m.device
 CROSS JOIN totals AS t
 ```
+</details>
 
 - **🛠️ How it's built**:
   1. ***Build dimension-date aggregates***:
