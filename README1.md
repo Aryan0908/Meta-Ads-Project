@@ -285,7 +285,6 @@ LIMIT 5
 <summary><b> View SQL</b></summary>
 
 ```sql
-```sql
 WITH conversion_camps AS (
 SELECT
 	p.date,
