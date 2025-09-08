@@ -268,6 +268,82 @@ LIMIT 5
   - Calculate CPL: SUM(p.cost)/SUM(p.lead) and round the result to 2 digits
   - Top 5: Order by CPL and limit results to 5
 
+##New
+```sql
+WITH conversion_camps AS (
+SELECT
+	p.date,
+	s.device,
+	AVG(p.ctr) AS ctr,
+	SUM(p.cost) AS cost,
+	SUM(p.revenue) AS revenue,
+	SUM(p.clicks) AS clicks,
+	SUM(p.purchase) AS purchase,
+	(SUM(p.revenue)/NULLIF(SUM(p.cost),0)) AS roas
+FROM campaigns AS c
+JOIN adsets AS s
+	ON s.campaign_id = c.campaign_id
+JOIN ads AS a
+	ON a.adset_id = s.adset_id
+JOIN performance AS p
+	ON p.ad_id = a.ad_id
+WHERE 
+	c.objective = 'conversions'
+GROUP BY p.date, s.device
+ORDER BY s.device ASC, p.date ASC
+),
+
+metrics AS (
+SELECT 
+	device,
+	SUM(cost) AS cost,
+	SUM(revenue) AS revenue,
+	(SUM(revenue) - NULLIF(SUM(cost), 0))/NULLIF(SUM(cost), 0) AS roi,
+	AVG(roas) AS roas,
+	SUM(purchase)/SUM(clicks) AS conversion_rate,
+	AVG(ctr) AS ctr
+FROM conversion_camps AS cc
+GROUP BY device
+),
+
+rolling_roas AS (
+SELECT 
+	device,
+	rolling_roas AS rolling_roas
+FROM(
+	SELECT
+		device,
+		date,
+		SUM(revenue) OVER w / NULLIF(SUM(cost) OVER w, 0) AS rolling_roas,
+      	ROW_NUMBER() OVER (PARTITION BY device ORDER BY date DESC) AS rn
+    	FROM conversion_camps
+    WINDOW w AS (PARTITION BY device ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
+  ) r
+WHERE rn = 1
+),
+
+totals AS (
+SELECT
+	SUM(cost) AS cost,
+	SUM(revenue) AS revenue
+FROM conversion_camps
+)
+
+SELECT 
+	m.device,
+	ROUND(m.ctr,2) AS ctr,
+	ROUND(m.roi,2) * 100 AS roi,
+	ROUND(m.roas,2) AS roas,
+	ROUND(m.conversion_rate,2) * 100 AS conversion_rate,
+	ROUND(rr.rolling_roas,2) AS rolling_roas,
+	ROUND((m.cost/t.cost) * 100,2) AS cost_share,
+	ROUND((m.revenue/t.revenue) * 100,2) AS revenue_share
+FROM metrics AS m
+JOIN rolling_roas AS rr
+	ON rr. device = m.device
+CROSS JOIN totals AS t
+
+```
 ## 8) Coversion Funnel-Drop Off
 - **🎯 Scope**: Conversions
 
