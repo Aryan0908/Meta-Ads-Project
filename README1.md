@@ -268,7 +268,23 @@ LIMIT 5
   - Calculate CPL: SUM(p.cost)/SUM(p.lead) and round the result to 2 digits
   - Top 5: Order by CPL and limit results to 5
 
-##New
+## 7) Dimension-Level Performance & ROAS Analysis
+- **🎯 Scope**: Conversions
+
+- **👉 What it answers**: 
+	- How does performance vary across different dimensions (e.g., device, age, gender, placement)?
+	- Which dimensions drive the highest ROI, ROAS, and Conversion Rates?
+	- What is the latest 7-day rolling ROAS per dimension?
+	- How much cost and revenue share does each dimension contribute to the total?
+
+- **👉 Why it matters**: Different demographics or placements can perform very differently. Identifying which dimension slices are most efficient allows advertisers to reallocate budget and optimize targeting. Rolling ROAS reveals momentum changes over time (which segment is improving or declining).
+
+> 💡 Note for reviewers: Default dimension/demograph is set to ***device*** you can change it to (placement, age_range, gender) to get data accordingly.
+
+<details>
+<summary><b> View SQL</b></summary>
+
+```sql
 ```sql
 WITH conversion_camps AS (
 SELECT
@@ -342,8 +358,43 @@ FROM metrics AS m
 JOIN rolling_roas AS rr
 	ON rr. device = m.device
 CROSS JOIN totals AS t
-
 ```
+
+- **🛠️ How it's built**:
+  1. ***Build dimension-date aggregates***:
+	- conversion_camps (CTE)
+	- Join: Campaigns → Adsets → Ads → Performance
+    - Filter: objective = conversions
+	- Group by: date × <chosen dimension> (e.g., device, age_range, gender, placement)
+	- Aggregate: CTR, Cost, Revenue, Clicks, Purchases, ROAS
+  2. ***Summarize into dimension-level totals***:
+    - metrics (CTE)
+	- Aggregate across all dates per dimension
+	- Calculate:
+		- **ROI** = (Revenue – Cost) / Cost
+		- **ROAS** = avg of daily ROAS
+		- **Conversion Rate** = Purchases / Clicks?
+		- **CTR** = avg of daily CTR
+  3. ***Compute rolling ROAS***:
+	- rolling_roas (CTE) 
+	- Window function: 7-day rolling window per dimension
+	- Formula: SUM(Revenue) / SUM(Cost) over last 7 days
+	- Keep only the most recent row per dimension with ROW_NUMBER()
+  4. ***Compute campaign totals***:
+	- totals (CTE)
+	- Across all dimensions: SUM(Cost), SUM(Revenue) using conversion_camps (CTE)
+	- Used as denominator for cost/revenue share
+  5. ***Final output***:
+	- One row per dimension value showing:
+		- CTR (%)
+ 		- ROI (%)
+		- ROAS
+		- Conversion Rate (%)
+		- Rolling ROAS (latest 7-day)
+		- Cost Share (%)
+		- Revenue Share (%)
+
+
 ## 8) Coversion Funnel-Drop Off
 - **🎯 Scope**: Conversions
 
