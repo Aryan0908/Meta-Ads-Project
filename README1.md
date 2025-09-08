@@ -98,8 +98,8 @@ ORDER BY total_clicks DESC
 - **🛠️ How it's built**:
   - Join up the chain, group by objective, aggregate clicks & cost, and sort
 
-## 3) Top 3 campaigns by revenue
-- **🎯 Scope**: Conversions and Traffic
+## 3) Performance of conversion campaigns
+- **🎯 Scope**: Conversions
 
 - **👉 What it answers**: Which campaigns generated the most revenue, so we can identify the top performers to focus and scale.
 
@@ -113,7 +113,13 @@ ORDER BY total_clicks DESC
 ```sql
 SELECT 
 	c.campaign_name,
-	ROUND(SUM(p.revenue),2) AS total_revenue
+	ROUND(SUM(p.revenue),2) AS total_revenue,
+	ROUND(SUM(p.cost),2) AS total_cost,
+	ROUND(SUM(p.revenue) - SUM(p.cost),2) AS profit_loss,
+	CASE
+		WHEN SUM(p.cost) > 0 THEN (ROUND((SUM(p.revenue) - SUM(p.cost))/SUM(p.cost)) * 100)::text
+		ELSE 'Error in recording cost'
+	END	AS roi
 FROM campaigns AS c
 JOIN adsets AS s
 	ON s.campaign_id = c.campaign_id
@@ -122,17 +128,17 @@ JOIN ads AS ad
 JOIN performance AS p
 	ON p.ad_id = ad.ad_id
 WHERE
-	c.objective IN('conversions','traffic')
+	c.objective IN('conversions')
 GROUP BY c.campaign_name
 ORDER BY total_revenue DESC
-LIMIT 3
 ```
 </details>
 
 - **🛠️ How it's built**:
-  - Filter: campaign objectives= 'conversions' & 'traffic'
-  - Aggregate: Sum of revenue per campaign rounded upto 2 decimal places
-  - Top 3: Order descending and limit upto 3 results
+  - Filter: campaign objectives= 'conversions'
+  - Aggregate: Sum of revenue, cost per campaign rounded upto 2 decimal places
+  - Calculate Profit and ROI: (Sum of Revenue - Sum of cost) profit, ((Sum of Revenue - Sum of cost)/Sum of Cost) ROI
+  - Using Case for Error Handling: In case of cost = 0 and revenue > 0, query will display 'Error in recording cost'
 
 ## 4) CTR by Age Range
 - **🎯 Scope**: Traffic
