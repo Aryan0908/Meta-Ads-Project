@@ -1,56 +1,38 @@
-# Meta Ads Power BI — DAX Documentation (Explained)
+# DAX Documentation (SQL-style writeup)
 
-This guide documents **what each important measure does**, **how it’s built**, and the **thinking behind the design**—so reviewers can see both your business logic and your DAX craft.
+Each measure is documented like our SQL cards: **What it answers**, **Why it matters**, **View DAX**, **How it’s built**, and **Similar measures**.
 
-## How to Read This
-- **Concept:** Plain-language definition and business intent.
-- **Logic blueprint:** Why the numerator/denominator and filters are chosen; context assumptions.
-- **DAX:** The actual formula.
-- **Dependencies:** The building blocks this measure uses.
-- **Edge cases & pitfalls:** Division by zero, filter traps, time intelligence gotchas.
-- **Variants & reuse:** Same pattern with other bases/dimensions.
 
-## KPI Families (Mental Model)
-- **Base Totals:** Spend, Revenue, Purchases, Clicks, Impressions (often filtered to `Objective = "Conversions"`).
-- **Ratios:** CTR (Clicks/Impressions), ROAS (Revenue/Spend), CPL (Spend/Leads), Conversion Rates (stage-to-stage).
-- **Time Windows:** 7-day base measures (`7D-*`) plus rolling averages over time.
-- **Periods:** Current vs Previous (WoW/MoM) blocks.
-- **Scenario Layer:** What-If (`n*`) measures + ▲/▼ text badges.
+## Roas
+ 👉 **What it answers:**
+- Which campaigns/adsets/ads generate the highest return per $1 spent?
+- ROAS trend by week/month for top segments
+- ROAS by device/placement/audience
 
-### Roas
-**Concept:** Return on Ad Spend — how much revenue you earned per 1 unit of spend in the current filter context.
+👉 **Why it matters:** Shows revenue efficiency of spend; helps rank campaigns/adsets by return.
 
-**Logic blueprint:**
-- **Numerator:** Revenue from `Performance` (Conversions objective) ensures we attribute revenue only from conversion campaigns.
-- **Denominator:** Total Spend in the same filter context.
-- **Context:** Inherits slice-by from `Date`, `Campaigns`, `Adsets`, `Ads`.
-
-**DAX:**
+**View DAX**
 ```dax
 CALCULATE(
     DIVIDE([TotalRevenue], [TotalSpend], 0),
     Campaigns[Objective] = "Conversions"
 )
 ```
+🛠️ **How it's built:**
+- Numerator: total Revenue scoped to `Objective = "Conversions"`
+- Denominator: total Spend in the same filter context
+- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
 
-**Dependencies:** Objective, TotalRevenue, TotalSpend
+👉 **Measures with similar DAX (different base):** Purchase/ClicksConversionRate
 
-**Edge cases & pitfalls:** - Use `DIVIDE` instead of `/` to gracefully handle zero spend.
-- Ensure `TotalRevenue` and `TotalSpend` are scoped consistently (e.g., objective filter).
+## 7D-ROAS
+ 👉 **What it answers:**
+- Is ROAS improving in the last 7 days vs previous 7?
+- Which adsets show positive short-term ROAS momentum?
 
-**Variants & reuse:** - `7D-ROAS` uses 7-day windows for both revenue and spend.
-- You can compute **ROAS change** by comparing to previous period or 7D baseline.
+👉 **Why it matters:** Smooths daily ROAS to highlight trend and reduce outlier noise.
 
-**Used by (examples):** 7DaysRollingRoas, BestWeek, BestWeekROAS, ConversionSelectedMetric, Max. ROAS, Min. ROAS, RoasCurrentMonth, RoasDailyAvg
-
-
-### 7D-ROAS
-**Concept:** ROAS smoothed over the last 7 days to reduce daily volatility.
-
-**Logic blueprint:**
-- Build 7-day `Revenue` and `Spend` with `DATESINPERIOD(..., -6, DAY)` (inclusive 7 rows), then `DIVIDE`.
-
-**DAX:**
+**View DAX**
 ```dax
 DIVIDE(
     [7D-Revenue],
@@ -58,103 +40,90 @@ DIVIDE(
     0
 )
 ```
+🛠️ **How it's built:**
+- Time window: `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)` (7 rows inclusive)
+- Use base `7D-*` numerators/denominators for ratios (e.g., 7D-Clicks/7D-Impressions)
+- Guard divisions with `DIVIDE()` to avoid divide-by-zero
 
-**Dependencies:** 7D-Revenue, 7D-Spend
+👉 **Measures with similar DAX (different base):** 7D-AOV, 7D-AtcCR, 7D-CPC, 7D-ConversionRate, 7D-LpvCR, nROAS
 
-**Edge cases & pitfalls:** - The 7-day window is **relative to the max visible date**; make sure your date slicers are aligned.
-- Beware partial weeks on edges of the dataset.
+## Avg.CTR
+ 👉 **What it answers:**
+- Which creatives/audiences get the highest engagement?
+- CTR split by device/placement
 
-**Variants & reuse:** - The same template applies to CTR (`7D-CTR`), CPC (`7D-CPC`), ConversionRate (`7D-ConversionRate`).
+👉 **Why it matters:** Indicates creative and audience engagement efficiency.
 
-**Used by (examples):** 7D-MetricSDelection, Overall-WhatIf-Summary, nROASText
-
-
-### Avg.CTR
-**Concept:** Overall click-through rate used for quick glance; taken directly as an average of the CTR column.
-
-**Logic blueprint:**
-- When CTR exists as a stored column, `AVERAGE(CTR)` is acceptable for **cards**. For **exact CTR**, prefer `DIVIDE([TotalClicks],[TotalImpressions])`.
-
-**DAX:**
+**View DAX**
 ```dax
 AVERAGE(Performance[CTR])
 ```
+🛠️ **How it's built:**
+- Direct `AVERAGE(Performance[Column])` from fact table
+- Note: `AVERAGE` (row CTR) may differ from `DIVIDE(Clicks, Impressions)`; choose intentionally
 
-**Dependencies:** CTR
+👉 **Measures with similar DAX (different base):** Avg. CPM, Avg. Cpc, Avg. Frequency
 
-**Edge cases & pitfalls:** - `AVERAGE` of row-level CTR can differ from `Clicks/Impressions` if the distribution is skewed.
+## 7D-CTR
+ 👉 **What it answers:**
+- Is CTR trending up/down this week?
+- Short-term creative performance shifts
 
-**Variants & reuse:** - `7D-CTR` replaces totals with 7D-totals to smooth fluctuations.
+👉 **Why it matters:** Short-term CTR momentum for daily monitoring.
 
-**Used by (examples):** BestWeekCtr, CTR_WOW, CreativePerformanceRecommendation_Text, CreativeSelectedMetric_CTR/CPC, WorstWeekCTR
-
-
-### 7D-CTR
-**Concept:** CTR smoothed over the last 7 days.
-
-**Logic blueprint:**
-- Compute `7D-Clicks` and `7D-Impressions` via `CALCULATE(..., DATESINPERIOD(...))`, then `DIVIDE`.
-
-**DAX:**
+**View DAX**
 ```dax
 CALCULATE(DIVIDE([TotalClicks],[TotalImpressions]), DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY))
 ```
+🛠️ **How it's built:**
+- Time window: `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)` (7 rows inclusive)
+- Use base `7D-*` numerators/denominators for ratios (e.g., 7D-Clicks/7D-Impressions)
+- Guard divisions with `DIVIDE()` to avoid divide-by-zero
 
-**Dependencies:** Date, TotalClicks, TotalImpressions
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** - If impressions are 0 in the 7D window, `DIVIDE` guards against errors.
+## Avg. Cpc
+ 👉 **What it answers:**
+- Which segments drive cheaper clicks?
+- CPC by device/placement/country
 
-**Variants & reuse:** - Same approach extends to other ratios like Conversion Rates.
+👉 **Why it matters:** What you pay per click; useful for cost control and bid/creative tests.
 
-**Used by (examples):** 7D-MetricSDelection, Overall-WhatIf-Summary, nCTR, nCTRText, nClicks, nPurchase, ΔRevenue (Waterfall)
-
-
-### Avg. Cpc
-**Concept:** Average Cpc in the current context.
-
-**Logic blueprint:**
-- Simple `AVERAGE` reads fact-level column; good for directional monitoring.
-
-**DAX:**
+**View DAX**
 ```dax
 AVERAGE(Performance[CPC])
 ```
+🛠️ **How it's built:**
+- Direct `AVERAGE(Performance[Column])` from fact table
+- Note: `AVERAGE` (row CTR) may differ from `DIVIDE(Clicks, Impressions)`; choose intentionally
 
-**Dependencies:** CPC
+👉 **Measures with similar DAX (different base):** Avg. CPM, Avg. Frequency, Avg.CTR
 
-**Edge cases & pitfalls:** - For **CPC**, the exact value is `Spend/Clicks`; `AVERAGE(CPC)` and `Spend/Clicks` can diverge. Choose based on your reporting intent.
+## Avg. CPM
+ 👉 **What it answers:**
+- Where is inventory getting expensive?
+- CPM by placement/country/day
 
-**Variants & reuse:** - 7-day variants (`7D-CPC`, `7D-CPM`) use 7-day numerators/denominators.
+👉 **Why it matters:** Cost per 1,000 impressions; helps spot inventory/auction shifts.
 
-**Used by (examples):** CPC_WOW, CreativeSelectedMetric_CTR/CPC
-
-
-### Avg. CPM
-**Concept:** Average CPM in the current context.
-
-**Logic blueprint:**
-- Simple `AVERAGE` reads fact-level column; good for directional monitoring.
-
-**DAX:**
+**View DAX**
 ```dax
 AVERAGE(Performance[CPM])
 ```
+🛠️ **How it's built:**
+- Direct `AVERAGE(Performance[Column])` from fact table
+- Note: `AVERAGE` (row CTR) may differ from `DIVIDE(Clicks, Impressions)`; choose intentionally
 
-**Dependencies:** CPM
+👉 **Measures with similar DAX (different base):** Avg. Cpc, Avg. Frequency, Avg.CTR
 
-**Edge cases & pitfalls:** - For **CPC**, the exact value is `Spend/Clicks`; `AVERAGE(CPC)` and `Spend/Clicks` can diverge. Choose based on your reporting intent.
+## LeadsConversionRate
+ 👉 **What it answers:**
+- Which segments convert clicks into leads best?
+- Conversion rate by age/gender/placement
 
-**Variants & reuse:** - 7-day variants (`7D-CPC`, `7D-CPM`) use 7-day numerators/denominators.
+👉 **Why it matters:** Effectiveness of clicks turning into leads; aligns with CPL goals.
 
-
-### LeadsConversionRate
-**Concept:** Probability of users progressing to the next stage (e.g., Click → Lead, Checkout → Purchase).
-
-**Logic blueprint:**
-- Define upstream/downstream events clearly (e.g., **Purchases/Clicks**, **Leads/Clicks**, **Purchases/InitiateCheckout**).
-- Keep scope: many totals are restricted to `Objective="Conversions"` to avoid polluting rates.
-
-**DAX:**
+**View DAX**
 ```dax
 CALCULATE(
     DIVIDE(
@@ -164,26 +133,21 @@ CALCULATE(
     Campaigns[Objective] = "Leads"
 )
 ```
+🛠️ **How it's built:**
+- Define stage numerator/denominator (e.g., Purchases/Clicks, Purchases/Checkout)
+- Keep objective and date filters consistent between numerator and denominator
+- Use `DIVIDE()` to handle zero denominators
 
-**Dependencies:** Objective, TotalLeadFormViews, TotalLeads
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** - Stage definitions must be mutually consistent (same filters, same date granularity).
-- Use `DIVIDE` to handle 0 denominators.
+## Purchase/ClicksConversionRate
+ 👉 **What it answers:**
+- Which segments convert clicks into purchases best?
+- Landing page effectiveness by audience
 
-**Variants & reuse:** - Provide 7D versions by swapping in `7D-*` numerators/denominators.
-- Add **drop-off** metrics as `1 - ConversionRate`.
+👉 **Why it matters:** Click-to-purchase efficiency; signals landing page/offer fit.
 
-**Used by (examples):** LeadsConversionRateText
-
-
-### Purchase/ClicksConversionRate
-**Concept:** Probability of users progressing to the next stage (e.g., Click → Lead, Checkout → Purchase).
-
-**Logic blueprint:**
-- Define upstream/downstream events clearly (e.g., **Purchases/Clicks**, **Leads/Clicks**, **Purchases/InitiateCheckout**).
-- Keep scope: many totals are restricted to `Objective="Conversions"` to avoid polluting rates.
-
-**DAX:**
+**View DAX**
 ```dax
 CALCULATE(
     DIVIDE(
@@ -194,91 +158,57 @@ CALCULATE(
     Campaigns[Objective] = "Conversions"
 )
 ```
+🛠️ **How it's built:**
+- Define stage numerator/denominator (e.g., Purchases/Clicks, Purchases/Checkout)
+- Keep objective and date filters consistent between numerator and denominator
+- Use `DIVIDE()` to handle zero denominators
 
-**Dependencies:** Objective, TotalClicks, TotalPurchases
+👉 **Measures with similar DAX (different base):** Roas
 
-**Edge cases & pitfalls:** - Stage definitions must be mutually consistent (same filters, same date granularity).
-- Use `DIVIDE` to handle 0 denominators.
+## AddToCartConversionRate
+ 👉 **What it answers:**
+- ATC → Purchase success by segment
+- Funnels with high ATC but low purchase (friction points)
 
-**Variants & reuse:** - Provide 7D versions by swapping in `7D-*` numerators/denominators.
-- Add **drop-off** metrics as `1 - ConversionRate`.
+👉 **Why it matters:** ATC → Purchase step health; identifies checkout friction.
 
-
-### Avg. CPL
-**Concept:** Average cost to acquire a lead — a key financial efficiency metric.
-
-**Logic blueprint:**
-- `DIVIDE(Spend, Leads)` in the current context; can be computed in 7D or by segment.
-
-**DAX:**
-```dax
-DIVIDE(
-    [TotalSpend],
-    [TotalLeads]
-)
-```
-
-**Dependencies:** TotalLeads, TotalSpend
-
-**Edge cases & pitfalls:** - Validate **Leads** definition (form submits vs qualified leads). 0 leads → guard with `DIVIDE`.
-
-**Variants & reuse:** - Add **CPL change** vs last 7 days or previous month for dashboards.
-
-**Used by (examples):** LeadsSelectedMetric
-
-
-### AddToCartConversionRate
-**Concept:** Probability of users progressing to the next stage (e.g., Click → Lead, Checkout → Purchase).
-
-**Logic blueprint:**
-- Define upstream/downstream events clearly (e.g., **Purchases/Clicks**, **Leads/Clicks**, **Purchases/InitiateCheckout**).
-- Keep scope: many totals are restricted to `Objective="Conversions"` to avoid polluting rates.
-
-**DAX:**
+**View DAX**
 ```dax
 [TotalPurchases] / [TotalAddToCart]
 ```
+🛠️ **How it's built:**
+- Define stage numerator/denominator (e.g., Purchases/Clicks, Purchases/Checkout)
+- Keep objective and date filters consistent between numerator and denominator
+- Use `DIVIDE()` to handle zero denominators
 
-**Dependencies:** TotalAddToCart, TotalPurchases
+👉 **Measures with similar DAX (different base):** CheckoutConversionRate, RevenuePerPurchase
 
-**Edge cases & pitfalls:** - Stage definitions must be mutually consistent (same filters, same date granularity).
-- Use `DIVIDE` to handle 0 denominators.
+## CheckoutConversionRate
+ 👉 **What it answers:**
+- Checkout completion health by segment
+- Detect payment or UX bottlenecks
 
-**Variants & reuse:** - Provide 7D versions by swapping in `7D-*` numerators/denominators.
-- Add **drop-off** metrics as `1 - ConversionRate`.
+👉 **Why it matters:** Checkout → Purchase final step health.
 
-**Used by (examples):** 7DaysRollingAtrConversionRate
-
-
-### CheckoutConversionRate
-**Concept:** Probability of users progressing to the next stage (e.g., Click → Lead, Checkout → Purchase).
-
-**Logic blueprint:**
-- Define upstream/downstream events clearly (e.g., **Purchases/Clicks**, **Leads/Clicks**, **Purchases/InitiateCheckout**).
-- Keep scope: many totals are restricted to `Objective="Conversions"` to avoid polluting rates.
-
-**DAX:**
+**View DAX**
 ```dax
 [TotalPurchases] / [TotalInititateCheckout]
 ```
+🛠️ **How it's built:**
+- Define stage numerator/denominator (e.g., Purchases/Clicks, Purchases/Checkout)
+- Keep objective and date filters consistent between numerator and denominator
+- Use `DIVIDE()` to handle zero denominators
 
-**Dependencies:** TotalInititateCheckout, TotalPurchases
+👉 **Measures with similar DAX (different base):** AddToCartConversionRate, RevenuePerPurchase
 
-**Edge cases & pitfalls:** - Stage definitions must be mutually consistent (same filters, same date granularity).
-- Use `DIVIDE` to handle 0 denominators.
+## 7D-ConversionRate
+ 👉 **What it answers:**
+- Near-term change in conversion efficiency
+- Compare 7D vs prior 7D
 
-**Variants & reuse:** - Provide 7D versions by swapping in `7D-*` numerators/denominators.
-- Add **drop-off** metrics as `1 - ConversionRate`.
+👉 **Why it matters:** Trend view of conversion efficiency without daily volatility.
 
-
-### 7D-ConversionRate
-**Concept:** Probability of users progressing to the next stage (e.g., Click → Lead, Checkout → Purchase).
-
-**Logic blueprint:**
-- Define upstream/downstream events clearly (e.g., **Purchases/Clicks**, **Leads/Clicks**, **Purchases/InitiateCheckout**).
-- Keep scope: many totals are restricted to `Objective="Conversions"` to avoid polluting rates.
-
-**DAX:**
+**View DAX**
 ```dax
 DIVIDE(
     [7D-Purchases],
@@ -286,159 +216,107 @@ DIVIDE(
     0
 )
 ```
+🛠️ **How it's built:**
+- Time window: `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)` (7 rows inclusive)
+- Use base `7D-*` numerators/denominators for ratios (e.g., 7D-Clicks/7D-Impressions)
+- Guard divisions with `DIVIDE()` to avoid divide-by-zero
+- Define stage numerator/denominator (e.g., Purchases/Clicks, Purchases/Checkout)
+- Keep objective and date filters consistent between numerator and denominator
+- Use `DIVIDE()` to handle zero denominators
 
-**Dependencies:** 7D-Clicks, 7D-Purchases
+👉 **Measures with similar DAX (different base):** 7D-AOV, 7D-AtcCR, 7D-CPC, 7D-LpvCR, 7D-ROAS, nROAS
 
-**Edge cases & pitfalls:** - Stage definitions must be mutually consistent (same filters, same date granularity).
-- Use `DIVIDE` to handle 0 denominators.
+## Avg. CPL
+ 👉 **What it answers:**
+- What is the Cost per Lead by adset?
+- Top 5 adsets with lowest CPL
+- Demographic breakdown of best CPL adsets
 
-**Variants & reuse:** - Provide 7D versions by swapping in `7D-*` numerators/denominators.
-- Add **drop-off** metrics as `1 - ConversionRate`.
+👉 **Why it matters:** Direct cost to acquire a lead; core efficiency metric for lead gen.
 
-**Used by (examples):** 7D-MetricSDelection, nCVR, nPurchase, ΔRevenue (Waterfall)
-
-
-### TotalSpend
-**Concept:** Base total for spend used by multiple KPIs.
-
-**Logic blueprint:**
-- Typically a `SUM` over the fact column; **reused** across many downstream measures.
-- Revenue/Purchases often constrained to `Objective="Conversions"`.
-
-**DAX:**
+**View DAX**
 ```dax
-SUM(Performance[Cost])
-```
-
-**Dependencies:** Cost
-
-**Edge cases & pitfalls:** - Keep filters consistent across totals feeding a ratio to avoid mismatched scopes.
-
-**Variants & reuse:** - Dimension variants: by **Campaign**, **Adset**, **Ad**, **Device**, etc.
-
-**Used by (examples):** 7D-Spend, 7DaysRollingSpend, Avg. CPL, Avg. Daily Spend, BestWeekSpend, CostPerPurchase, Min. ROAS, Profit/Loss
-
-
-### TotalRevenue
-**Concept:** Base total for revenue used by multiple KPIs.
-
-**Logic blueprint:**
-- Typically a `SUM` over the fact column; **reused** across many downstream measures.
-- Revenue/Purchases often constrained to `Objective="Conversions"`.
-
-**DAX:**
-```dax
-CALCULATE(
-    SUM(Performance[Revenue]),
-    Campaigns[Objective] = "Conversions"
+DIVIDE(
+    [TotalSpend],
+    [TotalLeads]
 )
 ```
+🛠️ **How it's built:**
+- Compute CPL = Spend / Leads via `DIVIDE([TotalSpend],[TotalLeads])`
+- Slice by adset/age/gender/placement for drivers
 
-**Dependencies:** Objective, Revenue
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** - Keep filters consistent across totals feeding a ratio to avoid mismatched scopes.
+## 7DaysRollingRoas
+ 👉 **What it answers:**
+- Is ROAS getting more/less stable over time?
+- Smooth line for executive dashboards
 
-**Variants & reuse:** - Dimension variants: by **Campaign**, **Adset**, **Ad**, **Device**, etc.
+👉 **Why it matters:** Smoothed ROAS trend; suitable for line charts and alerts.
 
-**Used by (examples):** 7D-Revenue, 7DaysRollingRevenue, Avg. Daily Revenue, BestWeekRevenue, ConversionSelectedMetric, CreativeSelectedMetric_Purchase/Revenue, Profit/Loss, RevenueCurrentMonth
-
-
-### TotalPurchases
-**Concept:** Base total for purchases used by multiple KPIs.
-
-**Logic blueprint:**
-- Typically a `SUM` over the fact column; **reused** across many downstream measures.
-- Revenue/Purchases often constrained to `Objective="Conversions"`.
-
-**DAX:**
-```dax
-CALCULATE(
-    SUM(Performance[Purchase]),
-    Campaigns[Objective] = "Conversions"
-)
-```
-
-**Dependencies:** Objective, Purchase
-
-**Edge cases & pitfalls:** - Keep filters consistent across totals feeding a ratio to avoid mismatched scopes.
-
-**Variants & reuse:** - Dimension variants: by **Campaign**, **Adset**, **Ad**, **Device**, etc.
-
-**Used by (examples):** 7D-Purchases, AddToCartConversionRate, Avg. DailyPurchase, CheckoutConversionRate, CostPerPurchase, CreativeSelectedMetric_Purchase/Revenue, Purchase/ClicksConversionRate, PurchasesCurrentMonth
-
-
-### TotalClicks
-**Concept:** Base total for clicks used by multiple KPIs.
-
-**Logic blueprint:**
-- Typically a `SUM` over the fact column; **reused** across many downstream measures.
-- Revenue/Purchases often constrained to `Objective="Conversions"`.
-
-**DAX:**
-```dax
-SUM(Performance[Clicks])
-```
-
-**Dependencies:** Clicks
-
-**Edge cases & pitfalls:** - Keep filters consistent across totals feeding a ratio to avoid mismatched scopes.
-
-**Variants & reuse:** - Dimension variants: by **Campaign**, **Adset**, **Ad**, **Device**, etc.
-
-**Used by (examples):** 7D-CTR, 7D-Clicks, Purchase/ClicksConversionRate
-
-
-### TotalImpressions
-**Concept:** Base total for impressions used by multiple KPIs.
-
-**Logic blueprint:**
-- Typically a `SUM` over the fact column; **reused** across many downstream measures.
-- Revenue/Purchases often constrained to `Objective="Conversions"`.
-
-**DAX:**
-```dax
-SUM(Performance[Impressions])
-```
-
-**Dependencies:** Impressions
-
-**Edge cases & pitfalls:** - Keep filters consistent across totals feeding a ratio to avoid mismatched scopes.
-
-**Variants & reuse:** - Dimension variants: by **Campaign**, **Adset**, **Ad**, **Device**, etc.
-
-**Used by (examples):** 7D-CTR, 7D-Impressions
-
-
-## Reusable Templates
-
-### 7-Day Window on a Base Measure
-**Why:** Stabilize noisy daily metrics; keep logic consistent across KPIs.
-- Use the same `DATESINPERIOD` selector; swap **only** the base measure.
-
-**Example (`7D-Clicks`):**
-```dax
-CALCULATE([TotalClicks], DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY))
-```
-**Gotchas:** Relative to the **max visible date**; beware gaps in dates.
-
-### Rolling Averages Over Time (Smoothing)
-**Why:** Smooths short-term noise for trend lines.
-- `AVERAGEX(DATESINPERIOD(...), [DailyKPI])`: iterate over dates and average the KPI.
-
-**Example (`7DaysRollingRoas`):**
+**View DAX**
 ```dax
 AVERAGEX(
     DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -7, DAY),
     [Roas]
 )
 ```
-**Gotchas:** Rolling average ≠ 7D ratio; choose appropriately for the story.
+🛠️ **How it's built:**
+- Smooth using `AVERAGEX(DATESINPERIOD(...), [Roas])`
+- Use on daily line charts for trends
 
-### Current vs Previous Period Blocks (WoW/MoM)
-**Why:** Attribute change to period effects.
-- Compute current and previous period with `EOMONTH`/`WEEKNUM`, then `CALCULATE([Measure], <period filter>)`.
+👉 **Measures with similar DAX (different base):** 7DaysRollingAtrConversionRate, 7DaysRollingRevenue, 7DaysRollingRoi, 7DaysRollingSpend
 
-**Example (`RoasCurrentMonth`):**
+## RoasStdDeviation
+ 👉 **What it answers:**
+- How noisy is ROAS on a daily basis?
+- Which campaigns are most volatile?
+
+👉 **Why it matters:** How variable ROAS is day-to-day; risk/consistency indicator.
+
+**View DAX**
+```dax
+CALCULATE(
+    STDEVX.S(VALUES('Date'[Date]),[Roas]),
+    Campaigns[Objective] = "Conversions"
+)
+```
+🛠️ **How it's built:**
+- Numerator: total Revenue scoped to `Objective = "Conversions"`
+- Denominator: total Spend in the same filter context
+- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
+
+👉 **Measures with similar DAX (different base):** —
+
+## RoasVolatility
+ 👉 **What it answers:**
+- Normalized volatility for apples-to-apples ROAS comparison
+- Risk-adjusted ranking of segments
+
+👉 **Why it matters:** Std Dev normalized by mean; comparable across segments.
+
+**View DAX**
+```dax
+CALCULATE(
+    DIVIDE([RoasStdDeviation], [RoasDailyAvg]),
+    FILTER(Campaigns, Campaigns[Objective] = "Conversions")
+)
+```
+🛠️ **How it's built:**
+- Numerator: total Revenue scoped to `Objective = "Conversions"`
+- Denominator: total Spend in the same filter context
+- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
+
+👉 **Measures with similar DAX (different base):** —
+
+## RoasCurrentMonth
+ 👉 **What it answers:**
+- Current month ROAS by segment
+- Which segments improved MoM?
+
+👉 **Why it matters:** This month’s ROAS in isolation for MoM insights.
+
+**View DAX**
 ```dax
 VAR maxMonth = MAX('Date'[MonthNum])
 
@@ -448,32 +326,115 @@ CALCULATE(
     MONTH(performance[date]) = maxMonth
 )
 ```
-**Gotchas:** Fiscal calendars vs ISO weeks; alignment with slicers.
+🛠️ **How it's built:**
+- Numerator: total Revenue scoped to `Objective = "Conversions"`
+- Denominator: total Spend in the same filter context
+- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
+- Identify month with `EOMONTH` or MonthNum
+- Calculate ROAS within month; pair with previous for MoM deltas
 
-## What‑If Analysis (Scenario Layer)
-**Goal:** Project KPI movement when inputs like CTR or CPM change.
-- Disconnected **parameter tables** feed `SELECTEDVALUE` for user inputs.
-- `n*` measures recompute KPIs using adjusted inputs.
-- Text measures (e.g., `nCPMText`) render ▲/▼ with percentage change.
+👉 **Measures with similar DAX (different base):** ProfitCurrentMonth, PurchasesCurrentMonth, RevenueCurrentMonth, SpendCurrentMonth
 
-**Parameter tables detected:** AOV Change %, CPM Change %, CTR Change %, CVR Change %, Date, Demographics Legend, Leads/CPL Metric Selection, Metric Selection, Purchase Elasticity, Purchase/Revenue Metric Selection, ROAS/CTR Metric Selection, ROAS/ROI/Spend Metric Selection, ROAS/Revenue Metric Selection, Scenario Scope, Spend Change %, Waterfall Steps
+## RoasPreviousMonth
+ 👉 **What it answers:**
+- Last month baseline for comparison
+- MoM delta calculations
 
-### nCPM
-**Concept:** Scenario version of `CPM` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Last month’s ROAS baseline for comparison.
 
-**DAX:**
+**View DAX**
+```dax
+var startPrevMonth = EOMONTH(MAX('Date'[Date]), -2) + 1
+var endPrevMonth = EOMONTH(MAX('Date'[Date]), -1)
+RETURN
+CALCULATE(
+    IF([Roas] > 0, [Roas], 0),
+    'Date'[Date] >= startPrevMonth && 'Date'[Date] <= endPrevMonth
+)
+```
+🛠️ **How it's built:**
+- Numerator: total Revenue scoped to `Objective = "Conversions"`
+- Denominator: total Spend in the same filter context
+- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
+- Identify month with `EOMONTH` or MonthNum
+- Calculate ROAS within month; pair with previous for MoM deltas
+
+👉 **Measures with similar DAX (different base):** PurchasesPreviousMonth, RevenuePreviousMonth, SpendPreviousMonth
+
+## RoasCurrentWeek
+ 👉 **What it answers:**
+- Current week ROAS by segment
+- Which segments improved WoW?
+
+👉 **Why it matters:** This week’s ROAS for WoW insights.
+
+**View DAX**
+```dax
+CALCULATE(
+    DIVIDE([TotalRevenue], [TotalSpend], 0),
+    Campaigns[Objective] = "Conversions",
+    'Date'[WeekNum] = MAX('Date'[WeekNum])
+)
+```
+🛠️ **How it's built:**
+- Numerator: total Revenue scoped to `Objective = "Conversions"`
+- Denominator: total Spend in the same filter context
+- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
+- Identify week using `WEEKNUM`/calendar table
+- Calculate ROAS within week; pair with previous for WoW deltas
+
+👉 **Measures with similar DAX (different base):** —
+
+## RoasPreviousWeek
+ 👉 **What it answers:**
+- Last week baseline for WoW comparison
+- WoW delta calculations
+
+👉 **Why it matters:** Last week’s ROAS baseline for comparison.
+
+**View DAX**
+```dax
+CALCULATE(
+    DIVIDE([TotalRevenue], [TotalSpend], 0),
+    Campaigns[Objective] = "Conversions",
+    'Date'[WeekNum] = MAX('Date'[WeekNum]) - 1
+)
+```
+🛠️ **How it's built:**
+- Numerator: total Revenue scoped to `Objective = "Conversions"`
+- Denominator: total Spend in the same filter context
+- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
+- Identify week using `WEEKNUM`/calendar table
+- Calculate ROAS within week; pair with previous for WoW deltas
+
+👉 **Measures with similar DAX (different base):** —
+
+## nCPM
+ 👉 **What it answers:**
+- If CPM changes by X%, how do costs shift?
+- Scenario testing for auction/seasonality effects
+
+👉 **Why it matters:** Scenario CPM after applying a user-selected change (What‑If).
+
+**View DAX**
 ```dax
 DIVIDE([nSpend], [nImpressions]) * 1000
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** nImpressions, nSpend
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nCTR
+ 👉 **What it answers:**
+- If CTR improves by X, how do clicks and downstream metrics change?
+- Creative uplift scenarios
 
-### nCTR
-**Concept:** Scenario version of `CTR` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Scenario CTR after applying a user-selected change (What‑If).
 
-**DAX:**
+**View DAX**
 ```dax
 VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
 VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
@@ -503,15 +464,21 @@ AVERAGEX (
     IF(isTargeted, adjustedCTR, baseCTR)
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-CTR, Adset ID, Campaign ID, CtrChange%, EntityID, EntityType, Scope
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nClicks
+ 👉 **What it answers:**
+- Projected clicks with new CTR/Impressions assumptions
+- Impact on CPC and funnel
 
-### nClicks
-**Concept:** Scenario version of `Clicks` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Scenario Clicks recalculated from CTR/Impressions changes (What‑If).
 
-**DAX:**
+**View DAX**
 ```dax
 VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
 RETURN
@@ -538,15 +505,21 @@ SUMX(
     baseImpressions * (baseCTR * mult)
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-CTR, 7D-Impressions, Adset ID, Campaign ID, CtrChange%, EntityID, Scope
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nImpressions
+ 👉 **What it answers:**
+- Projected reach given CPM/Budget changes
+- Impact on CTR/CPC
 
-### nImpressions
-**Concept:** Scenario version of `Impressions` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Scenario Impressions after CPM/Spend changes (What‑If).
 
-**DAX:**
+**View DAX**
 ```dax
 VAR entityID = SELECTEDVALUE(EntitySelector[EntityID]) 
 VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
@@ -578,15 +551,21 @@ SUMX (
     DIVIDE( nSpendRow, nCpmRow ) * 1000
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-CPM, 7D-Spend, Adset ID, Campaign ID, CpmChange%, EntityID, EntityType, Scope, SpendChange%
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nRevenue
+ 👉 **What it answers:**
+- Projected revenue given CR/ATC rates
+- Upside case vs baseline
 
-### nRevenue
-**Concept:** Scenario version of `Revenue` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Scenario Revenue from modified rates or conversion assumptions (What‑If).
 
-**DAX:**
+**View DAX**
 ```dax
 VAR entityID   = SELECTEDVALUE(EntitySelector[EntityID])
 VAR rowsForScenario =
@@ -621,15 +600,21 @@ SUMX(
     (BaseAOV * AOVmult) * nPurch_row
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-AOV, AOVChange%, Adset ID, Campaign ID, EntityID, Scope, nPurchase
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nSpend
+ 👉 **What it answers:**
+- Projected spend given CPM/budget tweaks
+- Budget planning scenarios
 
-### nSpend
-**Concept:** Scenario version of `Spend` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Scenario Spend after budget/bid adjustments (What‑If).
 
-**DAX:**
+**View DAX**
 ```dax
 VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
 VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
@@ -656,15 +641,21 @@ SUMX (
     IF(IsTargeted, baseSpend * [SpendChange%], baseSpend)
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-Spend, Adset ID, Campaign ID, EntityID, EntityType, Scope, SpendChange%
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nPurchase
+ 👉 **What it answers:**
+- Projected purchases under improved conversion rates
+- Funnel uplift scenarios
 
-### nPurchase
-**Concept:** Scenario version of `Purchase` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Scenario Purchases after conversion changes (What‑If).
 
-**DAX:**
+**View DAX**
 ```dax
 VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
 VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
@@ -707,15 +698,21 @@ SUMX (
     IF(ISBLANK(growth), mech, mech * POWER(growth, elasticity))
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-CPM, 7D-CTR, 7D-ConversionRate, 7D-Spend, Adset ID, Campaign ID, CpmChange%, CtrChange%, CvrChange%, EntityID, EntityType, Purchase Elasticity, Scope, SpendChange%
+👉 **Measures with similar DAX (different base):** —
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nCPMText
+ 👉 **What it answers:**
+- Readable badge ▲▼ for CPM change
+- Tooltip explanations
 
-### nCPMText
-**Concept:** Scenario version of `CPMText` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Readable ▲/▼ label for scenario CPM change vs baseline.
 
-**DAX:**
+**View DAX**
 ```dax
 VAR diff = IF([7D-CPM] <> 0, ([nCPM] - [7D-CPM])/[7D-CPM], 0)
 VAR roundDiff = (ROUND(diff, 2)) * 100
@@ -729,15 +726,21 @@ SWITCH(
     "-"
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-CPM, nCPM
+👉 **Measures with similar DAX (different base):** nAOVText, nCTRText, nClicksText, nImpressionsText, nPurchasesText, nROASText, nRevenueText, nSpendText
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nCTRText
+ 👉 **What it answers:**
+- Readable badge ▲▼ for CTR change
+- Tooltip explanations
 
-### nCTRText
-**Concept:** Scenario version of `CTRText` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Readable ▲/▼ label for scenario CTR change vs baseline.
 
-**DAX:**
+**View DAX**
 ```dax
 VAR diff = IF([7D-CTR] <> 0, ([nCTR] - [7D-CTR])/[7D-CTR], 0)
 VAR roundDiff = (ROUND(diff, 2)) * 100
@@ -751,15 +754,21 @@ SWITCH(
     "-"
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-CTR, nCTR
+👉 **Measures with similar DAX (different base):** nAOVText, nCPMText, nClicksText, nImpressionsText, nPurchasesText, nROASText, nRevenueText, nSpendText
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nClicksText
+ 👉 **What it answers:**
+- Readable badge ▲▼ for Clicks change
+- Tooltip explanations
 
-### nClicksText
-**Concept:** Scenario version of `ClicksText` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Readable ▲/▼ label for scenario Clicks change vs baseline.
 
-**DAX:**
+**View DAX**
 ```dax
 VAR diff = IF([7D-Clicks] <> 0, ([nClicks] - [7D-Clicks])/[7D-Clicks], 0)
 VAR roundDiff = (ROUND(diff, 2)) * 100
@@ -772,15 +781,21 @@ SWITCH(
     "-"
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-Clicks, nClicks
+👉 **Measures with similar DAX (different base):** nAOVText, nCPMText, nCTRText, nImpressionsText, nPurchasesText, nROASText, nRevenueText, nSpendText
 
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
+## nPurchasesText
+ 👉 **What it answers:**
+- Readable badge ▲▼ for Purchases change
+- Tooltip explanations
 
-### nPurchasesText
-**Concept:** Scenario version of `PurchasesText` (or its KPI text). It applies user input(s) via `SELECTEDVALUE` and recomputes.
+👉 **Why it matters:** Readable ▲/▼ label for scenario Purchases change vs baseline.
 
-**DAX:**
+**View DAX**
 ```dax
 VAR diff = IF([7D-Purchases] <> 0,([nPurchase] - [7D-Purchases])/[7D-Purchases],0)
 VAR roundDiff = (ROUND(diff, 2)) * 100
@@ -793,81 +808,9 @@ SWITCH(
     "-"
 )
 ```
+🛠️ **How it's built:**
+- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
+- Recompute KPI using adjusted parameter(s) to form scenario
+- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-**Dependencies:** 7D-Purchases, nPurchase
-
-**Edge cases & pitfalls:** Ensure defaults in `SELECTEDVALUE(..., default)`; clamp unrealistic values; keep units consistent (percent vs decimal).
-
-## RoasStdDeviation
-**Concept:** 
-Dispersion of daily ROAS — how much ROAS varies day-to-day.
-
-**DAX:**
-```dax
-CALCULATE(
-    STDEVX.S(VALUES('Date'[Date]),[Roas]),
-    Campaigns[Objective] = "Conversions"
-)
-```
-
-## RoasVolatility
-**Concept:** 
-Normalized variability (Std Dev / Mean), comparable across segments.
-
-**DAX:**
-```dax
-CALCULATE(
-    DIVIDE([RoasStdDeviation], [RoasDailyAvg]),
-    FILTER(Campaigns, Campaigns[Objective] = "Conversions")
-)
-```
-
-## BestWeekROAS
-**Concept:** 
-Identify the best/worst week’s ROAS for narrative insights.
-
-**DAX:**
-```dax
-VAR BestWeek = [BestWeek] 
-VAR ROAS =CALCULATE(
-    [Roas],
-    FILTER(
-        'Date',
-        'Date'[WeekNum] = BestWeek
-))
-
-
-RETURN
-"ROAS: $" & FORMAT(ROAS, "0.0")
-```
-
-## WorstWeekRoas
-**Concept:** 
-Identify the best/worst week’s ROAS for narrative insights.
-
-**DAX:**
-```dax
-VAR WorstWeek = [WorstWeek] 
-VAR ROAS = CALCULATE(
-    [Roas],
-    FILTER(
-        'Date',
-        'Date'[WeekNum] = WorstWeek
-))
-
-
-RETURN
-"ROAS: $" & FORMAT(ROAS, "0.0")
-```
-
-## Pattern Families (Same Code, Different Base)
-Document once, then reference all members.
-
-- nAOVText, nClicksText, nCPMText, nCTRText, nImpressionsText, nPurchasesText, nRevenueText, nROASText, nSpendText
-- 7D-LPV, 7D-Atc, 7D-Spend, 7D-Impressions, 7D-Clicks, 7D-Purchases, 7D-Revenue
-- 7D-CPC, 7D-ConversionRate, 7D-AtcCR, 7D-LpvCR, 7D-AOV, 7D-ROAS, nROAS
-- 7DaysRollingRoas, 7DaysRollingRevenue, 7DaysRollingSpend, 7DaysRollingRoi, 7DaysRollingAtrConversionRate
-- TotalRevenue, TotalPurchases, TotalAddToCart, TotalViewContent, TotalInititateCheckout
-- SpendCurrentMonth, RevenueCurrentMonth, RoasCurrentMonth, PurchasesCurrentMonth, ProfitCurrentMonth
-- Avg.CTR, Avg. Cpc, Avg. CPM, Avg. Frequency
-- TotalSpend, TotalClicks, TotalEngagement, TotalImpressions
+👉 **Measures with similar DAX (different base):** nAOVText, nCPMText, nCTRText, nClicksText, nImpressionsText, nROASText, nRevenueText, nSpendText
