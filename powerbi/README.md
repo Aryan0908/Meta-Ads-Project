@@ -1,38 +1,90 @@
-# DAX Documentation (SQL-style writeup)
-
-Each measure is documented like our SQL cards: **What it answers**, **Why it matters**, **View DAX**, **How it’s built**, and **Similar measures**.
-
+# POWER BI - DAX + Table Relationships
 
 ## 1) Roas
- 👉 **What it answers:**
-- Which campaigns/adsets/ads generate the highest return per $1 spent?
-- ROAS trend by week/month for top segments
-- ROAS by device/placement/audience
 
-👉 **Why it matters:** Shows revenue efficiency of spend; helps rank campaigns/adsets by return.
+👉 **What it answers:**
+
+- Which campaigns/adsets/ads generate the highest return per $1 spent?
+- ROAS by device/placement/audience
+- ROAS trend at current filter level
+
+👉 **Why it matters:** Primary efficiency KPI: revenue per unit spend; used to rank campaigns/adsets and allocate budget.
 
 **View DAX**
+
 ```dax
 CALCULATE(
     DIVIDE([TotalRevenue], [TotalSpend], 0),
     Campaigns[Objective] = "Conversions"
 )
 ```
+
 🛠️ **How it's built:**
-- Numerator: total Revenue scoped to `Objective = "Conversions"`
-- Denominator: total Spend in the same filter context
-- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
 
-👉 **Measures with similar DAX (different base):** Purchase/ClicksConversionRate
+- Numerator: `TotalRevenue` scoped to `Objective = "Conversions"`
+- Denominator: `TotalSpend` in the same filter context
+- Use `DIVIDE([TotalRevenue], [TotalSpend])` for safe division
+- Depends on: Objective, TotalRevenue, TotalSpend
 
-## 2) 7D-ROAS
- 👉 **What it answers:**
-- Is ROAS improving in the last 7 days vs previous 7?
-- Which adsets show positive short-term ROAS momentum?
+👉 **Name of measures with similar DAX but different base:** Roi
 
-👉 **Why it matters:** Smooths daily ROAS to highlight trend and reduce outlier noise.
+## 2.1) 7D-Spend
+
+👉 **What it answers:**
+
+- Is Spend trending increased/decreased this week?
+- Short-term spending shifts
+
+👉 **Why it matters:** Short-term Spend/cost momentum for daily monitoring.
 
 **View DAX**
+
+```dax
+CALCULATE([TotalSpend], DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY))
+```
+
+🛠️ **How it's built:**
+
+- Time window: `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)` (7 rows inclusive)
+- Use base `7D-*` numerators/denominators for ratios (e.g., 7D-Clicks/7D-Impressions)
+- Guard divisions with `DIVIDE()` to avoid divide-by-zero
+
+👉 **Name of measures with similar DAX but different base:** 7D-ATC, 7D-Clicks, 7D-CTR, 7D-Impressions, 7D-LPV, 7D-Purchases
+
+## 2.2) 7D-Revenue
+
+👉 **What it answers:**
+
+- What has been our revenue for the last 7 days.
+- Short-term revenue performance
+
+👉 **Why it matters:** Helps in comparing performance to previous weeks
+
+**View DAX**
+
+```dax
+CALCULATE([TotalRevenue], DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY))
+```
+
+🛠️ **How it's built:**
+
+- Time window: `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)` (7 rows inclusive)
+- Use base `7D-*` numerators/denominators for ratios (e.g., 7D-Clicks/7D-Impressions)
+- Guard divisions with `DIVIDE()` to avoid divide-by-zero
+
+👉 **Name of measures with similar DAX but different base:** 7D-ATC, 7D-Clicks, 7D-CTR, 7D-Impressions, 7D-LPV, 7D-Purchases
+
+## 2.3) 7D-ROAS
+
+👉 **What it answers:**
+
+- Is ROAS improving in the last 7 days vs previous 7?
+- Which adsets show positive short‑term ROAS momentum?
+
+👉 **Why it matters:** Removes single‑day noise and reveals near‑term momentum for decisions.
+
+**View DAX**
+
 ```dax
 DIVIDE(
     [7D-Revenue],
@@ -40,174 +92,154 @@ DIVIDE(
     0
 )
 ```
+
 🛠️ **How it's built:**
-- Time window: `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)` (7 rows inclusive)
-- Use base `7D-*` numerators/denominators for ratios (e.g., 7D-Clicks/7D-Impressions)
-- Guard divisions with `DIVIDE()` to avoid divide-by-zero
 
-👉 **Measures with similar DAX (different base):** 7D-AOV, 7D-AtcCR, 7D-CPC, 7D-ConversionRate, 7D-LpvCR, nROAS
+- Build 7‑day totals with `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)`
+- Compute `DIVIDE([7D-Revenue], [7D-Spend])`
+- Window is relative to **max visible date**
+- Depends on: 7D-Revenue, 7D-Spend
 
-## 3) Avg.CTR
- 👉 **What it answers:**
-- Which creatives/audiences get the highest engagement?
-- CTR split by device/placement
+👉 **Name of measures with similar DAX but different base:** 7D-AOV, 7D-AtcCR, 7D-CPC, 7D-CPM, 7D-ConversionRate, 7D-LpvCR
 
-👉 **Why it matters:** Indicates creative and audience engagement efficiency.
+## 3) 7DaysRollingRoas
+
+👉 **What it answers:**
+
+- Smooth ROAS trend day‑to‑day to see underlying movement
+- Where is ROAS consistently improving or deteriorating?
+
+👉 **Why it matters:** Smoothed line that stakeholders can interpret quickly without day‑to‑day noise.
 
 **View DAX**
-```dax
-AVERAGE(Performance[CTR])
-```
-🛠️ **How it's built:**
-- Direct `AVERAGE(Performance[Column])` from fact table
-- Note: `AVERAGE` (row CTR) may differ from `DIVIDE(Clicks, Impressions)`; choose intentionally
 
-👉 **Measures with similar DAX (different base):** Avg. CPM, Avg. Cpc, Avg. Frequency
-
-## 4) Avg. CPL
- 👉 **What it answers:**
-- What is the Cost per Lead by adset?
-- Top 5 adsets with lowest CPL
-- Demographic breakdown of best CPL adsets
-
-👉 **Why it matters:** Direct cost to acquire a lead; core efficiency metric for lead gen.
-
-**View DAX**
-```dax
-DIVIDE(
-    [TotalSpend],
-    [TotalLeads]
-)
-```
-🛠️ **How it's built:**
-- Compute CPL = Spend / Leads via `DIVIDE([TotalSpend],[TotalLeads])`
-- Slice by adset/age/gender/placement for drivers
-
-## 5) 7D-CTR
- 👉 **What it answers:**
-- Is CTR trending up/down this week?
-- Short-term creative performance shifts
-
-👉 **Why it matters:** Short-term CTR momentum for daily monitoring.
-
-**View DAX**
-```dax
-CALCULATE(DIVIDE([TotalClicks],[TotalImpressions]), DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY))
-```
-🛠️ **How it's built:**
-- Time window: `DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -6, DAY)` (7 rows inclusive)
-- Use base `7D-*` numerators/denominators for ratios (e.g., 7D-Clicks/7D-Impressions)
-- Guard divisions with `DIVIDE()` to avoid divide-by-zero
-
-## 6) Purchase/ClicksConversionRate
- 👉 **What it answers:**
-- Which segments convert clicks into purchases best?
-- Landing page effectiveness by audience
-
-👉 **Why it matters:** Click-to-purchase efficiency; signals landing page/offer fit.
-
-**View DAX**
-```dax
-CALCULATE(
-    DIVIDE(
-        [TotalPurchases],
-        [TotalClicks],
-        0
-        ),
-    Campaigns[Objective] = "Conversions"
-)
-```
-🛠️ **How it's built:**
-- Define stage numerator/denominator (e.g., Purchases/Clicks, Purchases/Checkout)
-- Keep objective and date filters consistent between numerator and denominator
-- Use `DIVIDE()` to handle zero denominators
-
-👉 **Measures with similar DAX (different base):** Roas, LeadsConversionRate
-
-## 7) AddToCartConversionRate
- 👉 **What it answers:**
-- ATC → Purchase success by segment
-- Funnels with high ATC but low purchase (friction points)
-
-👉 **Why it matters:** ATC → Purchase step health; identifies checkout friction.
-
-**View DAX**
-```dax
-[TotalPurchases] / [TotalAddToCart]
-```
-🛠️ **How it's built:**
-- Define stage numerator/denominator (e.g., Purchases/Clicks, Purchases/Checkout)
-- Keep objective and date filters consistent between numerator and denominator
-- Use `DIVIDE()` to handle zero denominators
-
-👉 **Measures with similar DAX (different base):** CheckoutConversionRate, RevenuePerPurchase
-
-## 8) 7DaysRollingRoas
- 👉 **What it answers:**
-- Is ROAS getting more/less stable over time?
-- Smooth line for executive dashboards
-
-👉 **Why it matters:** Smoothed ROAS trend; suitable for line charts and alerts.
-
-**View DAX**
 ```dax
 AVERAGEX(
     DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -7, DAY),
     [Roas]
 )
 ```
+
 🛠️ **How it's built:**
-- Smooth using `AVERAGEX(DATESINPERIOD(...), [Roas])`
-- Use on daily line charts for trends
 
-👉 **Measures with similar DAX (different base):** 7DaysRollingAtrConversionRate, 7DaysRollingRevenue, 7DaysRollingRoi, 7DaysRollingSpend
+- Smooth daily ROAS using `AVERAGEX(DATESINPERIOD(...), [Roas])`
+- Ideal for trend lines at day granularity
+- Depends on: Date, Roas
 
-## 9) RoasStdDeviation
- 👉 **What it answers:**
-- How noisy is ROAS on a daily basis?
-- Which campaigns are most volatile?
+👉 **Name of measures with similar DAX but different base:** 7DaysRollingAtrConversionRate, 7DaysRollingRevenue, 7DaysRollingRoi, 7DaysRollingSpend
 
-👉 **Why it matters:** How variable ROAS is day-to-day; risk/consistency indicator.
+## 4.1) RoasCurrentWeek
+
+👉 **What it answers:**
+
+- What is this week’s ROAS by segment?
+- Which segments improved WoW?
+
+👉 **Why it matters:** Operational snapshot for weekly reviews and WoW monitoring.
 
 **View DAX**
+
 ```dax
 CALCULATE(
-    STDEVX.S(VALUES('Date'[Date]),[Roas]),
-    Campaigns[Objective] = "Conversions"
+    DIVIDE([TotalRevenue], [TotalSpend], 0),
+    Campaigns[Objective] = "Conversions",
+    'Date'[WeekNum] = MAX('Date'[WeekNum])
 )
 ```
+
 🛠️ **How it's built:**
-- Numerator: total Revenue scoped to `Objective = "Conversions"`
-- Denominator: total Spend in the same filter context
-- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
 
-## 8) RoasVolatility
- 👉 **What it answers:**
-- Normalized volatility for apples-to-apples ROAS comparison
-- Risk-adjusted ranking of segments
+- Isolate a week via `WEEKNUM`/calendar logic or date filters
+- Compute ROAS within week using `DIVIDE([TotalRevenue],[TotalSpend])`
+- Pair current vs previous for WoW deltas
+- Depends on: Objective, TotalRevenue, TotalSpend, WeekNum
 
-👉 **Why it matters:** Std Dev normalized by mean; comparable across segments.
+👉 **Name of measures with similar DAX but different base:** LeadsCurrentWeek, RoiCurrentWeek
+
+## 4.2) RoasPreviousWeek
+
+👉 **What it answers:**
+
+- What was last week’s ROAS (baseline)?
+- Reference for WoW deltas
+
+👉 **Why it matters:** Baseline for WoW comparisons to attribute changes.
 
 **View DAX**
+
 ```dax
 CALCULATE(
-    DIVIDE([RoasStdDeviation], [RoasDailyAvg]),
-    FILTER(Campaigns, Campaigns[Objective] = "Conversions")
+    DIVIDE([TotalRevenue], [TotalSpend], 0),
+    Campaigns[Objective] = "Conversions",
+    'Date'[WeekNum] = MAX('Date'[WeekNum]) - 1
 )
 ```
-🛠️ **How it's built:**
-- Numerator: total Revenue scoped to `Objective = "Conversions"`
-- Denominator: total Spend in the same filter context
-- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
 
-## 9) RoasCurrentMonth
- 👉 **What it answers:**
-- Current month ROAS by segment
+🛠️ **How it's built:**
+
+- Isolate a week via `WEEKNUM`/calendar logic or date filters
+- Compute ROAS within week using `DIVIDE([TotalRevenue],[TotalSpend])`
+- Pair current vs previous for WoW deltas
+- Depends on: Objective, TotalRevenue, TotalSpend, WeekNum
+
+👉 **Name of measures with similar DAX but different base:** LeadsPreviousWeek, RoiPreviousWeek
+
+## 4.3) Roas_WOW
+
+👉 **What it answers:**
+
+- How has ROAS moved week‑over‑week across segments?
+- Line chart friendly ROAS for WoW comparisons
+
+👉 **Why it matters:** Consistent weekly series for storytelling and alerts.
+
+**View DAX**
+
+```dax
+VAR maxWeek = MAX('Date'[WeekNum])
+VAR currentWeek = maxWeek
+VAR previousWeek = currentWeek - 1
+
+VAR ROI_CurrentWeek =
+    CALCULATE(
+        [Roas],
+        'Date'[WeekNum] = currentWeek
+    )
+
+VAR ROI_PreviousWeek =
+    CALCULATE(
+        [Roas],
+        'Date'[WeekNum] = previousWeek
+    )
+
+RETURN
+
+    IF(
+        NOT(ISBLANK(ROI_PreviousWeek)),
+        (ROI_CurrentWeek - ROI_PreviousWeek) / ROI_PreviousWeek,
+        BLANK()
+    )
+```
+
+🛠️ **How it's built:**
+
+- Calculated over current filter context
+- Uses base ROAS (`DIVIDE([TotalRevenue],[TotalSpend])`) within the relevant period/grain
+- Depends on: Roas, WeekNum
+
+👉 **Name of measures with similar DAX but different base:** CPC_WOW, CTR_WOW, Lead_WOW, Roi_WOW
+
+## 5.1) RoasCurrentMonth
+
+👉 **What it answers:**
+
+- What is the current month’s ROAS by segment?
 - Which segments improved MoM?
 
-👉 **Why it matters:** This month’s ROAS in isolation for MoM insights.
+👉 **Why it matters:** Exec‑level KPI for monthly pacing and budget shifts.
 
 **View DAX**
+
 ```dax
 VAR maxMonth = MAX('Date'[MonthNum])
 
@@ -217,23 +249,27 @@ CALCULATE(
     MONTH(performance[date]) = maxMonth
 )
 ```
+
 🛠️ **How it's built:**
-- Numerator: total Revenue scoped to `Objective = "Conversions"`
-- Denominator: total Spend in the same filter context
-- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
-- Identify month with `EOMONTH` or MonthNum
-- Calculate ROAS within month; pair with previous for MoM deltas
 
-👉 **Measures with similar DAX (different base):** ProfitCurrentMonth, PurchasesCurrentMonth, RevenueCurrentMonth, SpendCurrentMonth
+- Isolate month via `EOMONTH` or MonthNum
+- Compute ROAS within month using the same base ROAS definition
+- Pair current vs previous for MoM deltas
+- Depends on: MonthNum, Roas, date
 
-## 10) RoasPreviousMonth
- 👉 **What it answers:**
-- Last month baseline for comparison
-- MoM delta calculations
+👉 **Name of measures with similar DAX but different base:** ProfitCurrentMonth, PurchasesCurrentMonth, RevenueCurrentMonth, SpendCurrentMonth
 
-👉 **Why it matters:** Last month’s ROAS baseline for comparison.
+## 5.2) RoasPreviousMonth
+
+👉 **What it answers:**
+
+- What was last month’s ROAS (baseline)?
+- Reference for MoM deltas
+
+👉 **Why it matters:** Baseline for MoM evaluation and pacing corrections.
 
 **View DAX**
+
 ```dax
 var startPrevMonth = EOMONTH(MAX('Date'[Date]), -2) + 1
 var endPrevMonth = EOMONTH(MAX('Date'[Date]), -1)
@@ -243,98 +279,315 @@ CALCULATE(
     'Date'[Date] >= startPrevMonth && 'Date'[Date] <= endPrevMonth
 )
 ```
+
 🛠️ **How it's built:**
-- Numerator: total Revenue scoped to `Objective = "Conversions"`
-- Denominator: total Spend in the same filter context
-- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
-- Identify month with `EOMONTH` or MonthNum
-- Calculate ROAS within month; pair with previous for MoM deltas
 
-👉 **Measures with similar DAX (different base):** PurchasesPreviousMonth, RevenuePreviousMonth, SpendPreviousMonth, ProfitPreviousMonth
+- Isolate month via `EOMONTH` or MonthNum
+- Compute ROAS within month using the same base ROAS definition
+- Pair current vs previous for MoM deltas
+- Depends on: Date, Roas
 
-## 11) RoasCurrentWeek
- 👉 **What it answers:**
-- Current week ROAS by segment
-- Which segments improved WoW?
+👉 **Name of measures with similar DAX but different base:** PurchasesPreviousMonth, RevenuePreviousMonth, SpendPreviousMonth, ProfitPreviousMonth
 
-👉 **Why it matters:** This week’s ROAS for WoW insights.
+## 5.3) Roas_MOM%
+
+👉 **What it answers:**
+
+- By what percent did ROAS change vs previous month?
+- Which segments contributed most to the MoM change?
+
+👉 **Why it matters:** Quantifies improvement/decline to guide budget reallocation.
 
 **View DAX**
+
 ```dax
-CALCULATE(
-    DIVIDE([TotalRevenue], [TotalSpend], 0),
-    Campaigns[Objective] = "Conversions",
-    'Date'[WeekNum] = MAX('Date'[WeekNum])
+VAR prev = [RoasPreviousMonth]
+VAR curr = [RoasCurrentMonth]
+RETURN
+IF(
+    NOT ISBLANK(prev),
+    DIVIDE(curr - prev, prev),
+    BLANK()
 )
 ```
+
 🛠️ **How it's built:**
-- Numerator: total Revenue scoped to `Objective = "Conversions"`
-- Denominator: total Spend in the same filter context
-- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
-- Identify week using `WEEKNUM`/calendar table
-- Calculate ROAS within week; pair with previous for WoW deltas
 
-👉 **Measures with similar DAX (different base):** — LeadsCurrentWeek, RoiCurrentWeek
+- Calculate ROAS for current vs previous month
+- Percent change: `(Current - Previous) / Previous`
+- Return % for conditional formatting and ranking
+- Depends on: RoasCurrentMonth, RoasPreviousMonth
 
-## 12) RoasPreviousWeek
- 👉 **What it answers:**
-- Last week baseline for WoW comparison
-- WoW delta calculations
+👉 **Name of measures with similar DAX but different base:** Profit_MOM%, Purchase_MOM%, Revenue_MOM%, Spend_MOM%
 
-👉 **Why it matters:** Last week’s ROAS baseline for comparison.
+## 5.4) Roas_MOMLabel
+
+👉 **What it answers:**
+
+- Readable ▲/▼ label for ROAS MoM change
+- Card/tooltip friendly summary
+
+👉 **Why it matters:** Human‑readable signal (▲/▼) for dashboards and tooltips.
 
 **View DAX**
+
 ```dax
-CALCULATE(
-    DIVIDE([TotalRevenue], [TotalSpend], 0),
-    Campaigns[Objective] = "Conversions",
-    'Date'[WeekNum] = MAX('Date'[WeekNum]) - 1
+VAR change = [Roas_MOM%] * 100
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(change), "–",
+    change > 0, "▲ " & FORMAT(change, "0.0") & "% MOM",
+    change < 0, "▼ " & FORMAT(change, "0.0") & "% MOM",
+    "0.0%"
 )
 ```
+
 🛠️ **How it's built:**
-- Numerator: total Revenue scoped to `Objective = "Conversions"`
-- Denominator: total Spend in the same filter context
-- Use `DIVIDE([TotalRevenue],[TotalSpend])` for safety
-- Identify week using `WEEKNUM`/calendar table
-- Calculate ROAS within week; pair with previous for WoW deltas
 
-👉 **Measures with similar DAX (different base):** — LeadsPreviousWeek, RoiPreviousWeek
+- Reuse `Roas_MOM%` and bucket ▲/▼ text based on sign and thresholds
+- Format with `FORMAT()` for a dashboard‑ready label
+- Depends on: Roas_MOM%
 
-## 13) nCPM
- 👉 **What it answers:**
-- If CPM changes by X%, how do costs shift?
-- Scenario testing for auction/seasonality effects
+👉 **Name of measures with similar DAX but different base:** Profit_MOMLabel, Purchase_MOMLabel, Revenue_MOMLabel, Spend_MOMLabel
 
-👉 **Why it matters:** Scenario CPM after applying a user-selected change (What‑If).
+## 6) BestWeekROAS
+
+👉 **What it answers:**
+
+- Which week delivered the best ROAS?
+- Narrative anchor for highlights
+
+👉 **Why it matters:** Highlights peak performance and helps replicate drivers.
 
 **View DAX**
+
 ```dax
-DIVIDE([nSpend], [nImpressions]) * 1000
+VAR BestWeek = [BestWeek]
+VAR ROAS =CALCULATE(
+    [Roas],
+    FILTER(
+        'Date',
+        'Date'[WeekNum] = BestWeek
+))
+
+
+RETURN
+"ROAS: $" & FORMAT(ROAS, "0.0")
 ```
+
 🛠️ **How it's built:**
-- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
-- Recompute KPI using adjusted parameter(s) to form scenario
-- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-👉 **Measures with similar DAX (different base):** —
+- Identify target week (max/min ROAS) in the context
+- Evaluate with `CALCULATE([Roas], <week filter>)` for that week
+- Depends on: BestWeek, Roas, WeekNum
 
-## 14) nCTR
- 👉 **What it answers:**
-- If CTR improves by X, how do clicks and downstream metrics change?
-- Creative uplift scenarios
+👉 **Name of measures with similar DAX but different base:** BestWeekCtr, BestWeekRevenue, BestWeekRoi, BestWeekSpend
 
-👉 **Why it matters:** Scenario CTR after applying a user-selected change (What‑If).
+## 7) WorstWeekRoas
+
+👉 **What it answers:**
+
+- Which week delivered the worst ROAS?
+- Risk and remediation prioritization
+
+👉 **Why it matters:** Surfaces risk and directs fix‑it analysis.
 
 **View DAX**
+
+```dax
+VAR WorstWeek = [WorstWeek]
+VAR ROAS = CALCULATE(
+    [Roas],
+    FILTER(
+        'Date',
+        'Date'[WeekNum] = WorstWeek
+))
+
+
+RETURN
+"ROAS: $" & FORMAT(ROAS, "0.0")
+```
+
+🛠️ **How it's built:**
+
+- Identify target week (max/min ROAS) in the context
+- Evaluate with `CALCULATE([Roas], <week filter>)` for that week
+- Depends on: Roas, WeekNum, WorstWeek
+
+👉 **Name of measures with similar DAX but different base:** WorstWeekCtr, WorstWeekRevenue, WorstWeekRoi, WorstWeekSpend
+
+## 8.1) RoasStdDeviation
+
+👉 **What it answers:**
+
+- How variable is ROAS day‑to‑day?
+- Which segments are most volatile?
+
+👉 **Why it matters:** Measures stability; unstable ROAS needs investigation.
+
+**View DAX**
+
+```dax
+CALCULATE(
+    STDEVX.S(VALUES('Date'[Date]),[Roas]),
+    Campaigns[Objective] = "Conversions"
+)
+```
+
+🛠️ **How it's built:**
+
+- Compute daily ROAS; use `STDEVX.S(VALUES('Date'[Date]), [Roas])`
+- Depends on: Date, Objective, Roas
+
+👉 **Name of measures with similar DAX but different base:** CTR, CPC, CPM, ConversionRate variants
+
+## 8.2) RoasVolatility
+
+👉 **What it answers:**
+
+- How volatile is ROAS relative to its average?
+- Risk‑adjusted comparison across segments
+
+👉 **Why it matters:** Normalizes dispersion by level to compare apples‑to‑apples.
+
+**View DAX**
+
+```dax
+CALCULATE(
+    DIVIDE([RoasStdDeviation], [RoasDailyAvg]),
+    FILTER(Campaigns, Campaigns[Objective] = "Conversions")
+)
+```
+
+🛠️ **How it's built:**
+
+- Volatility = `RoasStdDeviation / AVERAGEX(VALUES('Date'[Date]), [Roas])`
+- Depends on: Objective, RoasDailyAvg, RoasStdDeviation
+
+👉 **Name of measures with similar DAX but different base:** CTR, CPC, CPM, ConversionRate variants
+
+## 9) Max. ROAS
+
+👉 **What it answers:**
+
+- Best ROAS by segment
+- Trend over time
+
+👉 **Why it matters:** Key ROAS KPI for optimization and reporting.
+
+**View DAX**
+
+```dax
+CALCULATE(
+    [Roas],
+    TOPN(
+        1,
+        ADDCOLUMNS(
+            SUMMARIZE(
+                'Date',
+                'Date'[Date]),
+            "Daily ROAS",
+            [Roas]
+        ),
+        [Daily ROAS],
+        DESC
+
+    ))
+```
+
+🛠️ **How it's built:**
+
+- Calculated over current filter context
+- Uses base ROAS (`DIVIDE([TotalRevenue],[TotalSpend])`) within the relevant period/grain
+- Depends on: Daily ROAS, Date, Roas
+
+👉 **Name of measures with similar DAX but different base:** CTR, CPC, CPM, ConversionRate variants
+
+## 10) Min. ROAS
+
+👉 **What it answers:**
+
+- ROAS by segment
+- Trend over time
+
+👉 **Why it matters:** Key ROAS KPI for optimization and reporting.
+
+**View DAX**
+
+```dax
+CALCULATE(
+    [Roas],
+    TOPN(
+        1,
+        FILTER(
+            ADDCOLUMNS(
+                SUMMARIZE(
+                    'Date',
+                    'Date'[Date]),
+                "Daily ROAS",
+                [Roas],
+                "Spend",
+                [TotalSpend]
+        ),
+        [TotalSpend] > 0
+        ),
+        [Daily ROAS],
+        ASC
+
+    ))
+```
+
+🛠️ **How it's built:**
+
+- Calculated over current filter context
+- Uses base ROAS (`DIVIDE([TotalRevenue],[TotalSpend])`) within the relevant period/grain
+- Depends on: Daily ROAS, Date, Roas, TotalSpend
+
+👉 **Name of measures with similar DAX but different base:** CTR, CPC, CPM, ConversionRate variants
+
+## 11) RoasDailyAvg
+
+👉 **What it answers:**
+
+- ROAS by segment
+- Trend over time
+
+👉 **Why it matters:** Key ROAS KPI for optimization and reporting.
+
+**View DAX**
+
+```dax
+AVERAGEX(
+    VALUES('Date'[Date]),
+    [Roas]
+)
+```
+
+🛠️ **How it's built:**
+
+- Calculated over current filter context
+- Uses base ROAS (`DIVIDE([TotalRevenue],[TotalSpend])`) within the relevant period/grain
+- Depends on: Date, Roas
+
+👉 **Name of measures with similar DAX but different base:** CTR, CPC, CPM, ConversionRate variants
+
+## 12.1) nSpend
+
+👉 **What it answers:**
+
+- Projected spend given budget tweaks
+- Budget planning scenarios
+
+👉 **Why it matters:** Scenario Spend after budget/bid adjustments (What‑If).
+
+**View DAX**
+
 ```dax
 VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
 VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
-VAR baseCTR = [7D-CTR]
-VAR cvrMult = IF([CtrChange%] = 0, 1, [CtrChange%])
-VAR adjustedCTR = baseCTR * cvrMult
-
 RETURN
-AVERAGEX (
+SUMX (
     SUMMARIZE (
         Adsets,
         Adsets[Adset ID],
@@ -342,7 +595,8 @@ AVERAGEX (
     ),
     VAR thisAdset = Adsets[Adset ID]
     VAR thisCampaign = Campaigns[Campaign ID]
-    VAR isTargeted =
+    VAR baseSpend = CALCULATE([7D-Spend], Adsets[Adset ID] = thisAdset)
+    VAR IsTargeted =
         SWITCH (
             TRUE(),
             [Scope] = "Global", TRUE(),
@@ -350,113 +604,29 @@ AVERAGEX (
             [Scope] = "Adset" && thisAdset = entityID, TRUE(),
             FALSE
         )
-        
-    RETURN 
-    IF(isTargeted, adjustedCTR, baseCTR)
+
+    RETURN
+    IF(IsTargeted, baseSpend * [SpendChange%], baseSpend)
 )
 ```
+
 🛠️ **How it's built:**
+
 - Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
 - Recompute KPI using adjusted parameter(s) to form scenario
 - For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-👉 **Measures with similar DAX (different base):** —
+## 12.2) nRevenue
 
-## 15) nClicks
- 👉 **What it answers:**
-- Projected clicks with new CTR/Impressions assumptions
-- Impact on CPC and funnel
+👉 **What it answers:**
 
-👉 **Why it matters:** Scenario Clicks recalculated from CTR/Impressions changes (What‑If).
-
-**View DAX**
-```dax
-VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
-RETURN
-SUMX(
-    SUMMARIZE(
-        Adsets,
-        Adsets[Adset ID],
-        Campaigns[Campaign ID]
-    ),
-    VAR thisAdset = Adsets[Adset ID]
-    VAR thisCampaign = Campaigns[Campaign ID]
-    VAR baseImpressions = CALCULATE([7D-Impressions], Adsets[Adset ID] = thisAdset)
-    VAR baseCTR = CALCULATE([7D-CTR], Adsets[Adset ID] = thisAdset)
-    VAR isTargeted =
-        SWITCH(
-            TRUE(),
-            [Scope] = "Global", TRUE(),
-            [Scope] = "Campaign" && thisCampaign = entityID, TRUE(),
-            [Scope] = "Adset" && thisAdset = entityID, TRUE(),
-            FALSE
-        )
-    VAR mult = IF(isTargeted, [CtrChange%], 1)
-    RETURN 
-    baseImpressions * (baseCTR * mult)
-)
-```
-🛠️ **How it's built:**
-- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
-- Recompute KPI using adjusted parameter(s) to form scenario
-- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
-
-👉 **Measures with similar DAX (different base):** —
-
-## 16) nImpressions
- 👉 **What it answers:**
-- Projected reach given CPM/Budget changes
-- Impact on CTR/CPC
-
-👉 **Why it matters:** Scenario Impressions after CPM/Spend changes (What‑If).
-
-**View DAX**
-```dax
-VAR entityID = SELECTEDVALUE(EntitySelector[EntityID]) 
-VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
-
-RETURN
-SUMX (
-    SUMMARIZE( 
-        Adsets, 
-        Adsets[Adset ID], 
-        Campaigns[Campaign ID] 
-        ),
-    VAR thisAdset   = Adsets[Adset ID]
-    VAR thisCampaign = Campaigns[Campaign ID]
-    VAR baseSpend = CALCULATE([7D-Spend], Adsets[Adset ID] = thisAdset)
-    VAR baseCPM = CALCULATE([7D-CPM], Adsets[Adset ID] = thisAdset)
-    VAR IsTargeted = 
-    SWITCH ( 
-        TRUE(), 
-        [Scope] = "Global", TRUE(), 
-        [Scope] = "Campaign" && thisCampaign = entityID, TRUE(), 
-        [Scope] = "Adset" && ThisAdset = entityID, TRUE(), FALSE 
-    )
-    VAR sMult = IF( isTargeted, [SpendChange%], 1 )
-    VAR cpmMult = IF( isTargeted, [CpmChange%] , 1 )
-    VAR nSpendRow = baseSpend * sMult
-    VAR nCpmRow = baseCPM  * cpmMult
-
-    RETURN 
-    DIVIDE( nSpendRow, nCpmRow ) * 1000
-)
-```
-🛠️ **How it's built:**
-- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
-- Recompute KPI using adjusted parameter(s) to form scenario
-- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
-
-👉 **Measures with similar DAX (different base):** —
-
-## 17) nRevenue
- 👉 **What it answers:**
-- Projected revenue given CR/ATC rates
+- Projected revenue given adjusted CR/ATC rates
 - Upside case vs baseline
 
 👉 **Why it matters:** Scenario Revenue from modified rates or conversion assumptions (What‑If).
 
 **View DAX**
+
 ```dax
 VAR entityID   = SELECTEDVALUE(EntitySelector[EntityID])
 VAR rowsForScenario =
@@ -487,123 +657,56 @@ SUMX(
             KEEPFILTERS(Adsets[Adset ID] = thisAdset)
         )
 
-    RETURN 
+    RETURN
     (BaseAOV * AOVmult) * nPurch_row
 )
 ```
+
 🛠️ **How it's built:**
+
 - Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
 - Recompute KPI using adjusted parameter(s) to form scenario
 - For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-👉 **Measures with similar DAX (different base):** —
+## 12.3) nROAS
 
-## 18) nSpend
- 👉 **What it answers:**
-- Projected spend given CPM/budget tweaks
-- Budget planning scenarios
+👉 **What it answers:**
 
-👉 **Why it matters:** Scenario Spend after budget/bid adjustments (What‑If).
+- ROAS by segment
+- Trend over time
+
+👉 **Why it matters:** Key ROAS KPI for optimization and reporting.
 
 **View DAX**
-```dax
-VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
-VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
-RETURN
-SUMX (
-    SUMMARIZE (
-        Adsets,
-        Adsets[Adset ID],
-        Campaigns[Campaign ID]
-    ),
-    VAR thisAdset = Adsets[Adset ID]
-    VAR thisCampaign = Campaigns[Campaign ID]
-    VAR baseSpend = CALCULATE([7D-Spend], Adsets[Adset ID] = thisAdset)
-    VAR IsTargeted =
-        SWITCH (
-            TRUE(),
-            [Scope] = "Global", TRUE(),
-            [Scope] = "Campaign" && thisCampaign = entityID, TRUE(),
-            [Scope] = "Adset" && thisAdset = entityID, TRUE(),
-            FALSE
-        )
 
-    RETURN 
-    IF(IsTargeted, baseSpend * [SpendChange%], baseSpend)
+```dax
+DIVIDE(
+    [nRevenue],
+    [nSpend],
+    0
 )
 ```
+
 🛠️ **How it's built:**
-- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
-- Recompute KPI using adjusted parameter(s) to form scenario
-- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-👉 **Measures with similar DAX (different base):** —
+- Calculated over current filter context
+- Uses base ROAS (`DIVIDE([TotalRevenue],[TotalSpend])`) within the relevant period/grain
+- Depends on: nRevenue, nSpend
 
-## 19) nPurchase
- 👉 **What it answers:**
-- Projected purchases under improved conversion rates
-- Funnel uplift scenarios
+👉 **Name of measures with similar DAX but different base:** 7D-AOV, 7D-AtcCR, 7D-CPC, 7D-ConversionRate, 7D-LpvCR
 
-👉 **Why it matters:** Scenario Purchases after conversion changes (What‑If).
+## 12.4) nROASText
+
+👉 **What it answers:**
+
+- Display adjusted ROAS in clear indicated form
+
+👉 **Why it matters:** Key ROAS KPI for optimization and reporting.
 
 **View DAX**
+
 ```dax
-VAR entityID = SELECTEDVALUE(EntitySelector[EntityID])
-VAR entityType = SELECTEDVALUE(EntitySelector[EntityType])
-RETURN
-SUMX (
-    SUMMARIZE (
-        Adsets,
-        Adsets[Adset ID],
-        Campaigns[Campaign ID]
-    ),
-    VAR thisAdset = Adsets[Adset ID]
-    VAR thisCampaign = Campaigns[Campaign ID]
-    VAR baseSpend = CALCULATE([7D-Spend], Adsets[Adset ID]=thisAdset)
-    VAR baseCTR = CALCULATE([7D-CTR], Adsets[Adset ID]=thisAdset)
-    VAR baseCPM = CALCULATE([7D-CPM], Adsets[Adset ID]=thisAdset)
-    VAR baseCVR = CALCULATE([7D-ConversionRate], Adsets[Adset ID]=thisAdset)
-    VAR IsTargeted =
-        SWITCH (
-            TRUE(),
-            [Scope] = "Global", TRUE(),
-            [Scope] = "Campaign" && thisCampaign = entityID, TRUE(),
-            [Scope] = "Adset" && thisAdset = entityID, TRUE(),
-            FALSE
-        )
-    VAR sMult = IF(IsTargeted, [SpendChange%], 1)
-    VAR cpmMult = IF(IsTargeted, [CpmChange%] , 1)
-    VAR ctrMult = IF(IsTargeted, [CtrChange%], 1)
-    VAR cvrMult = IF(IsTargeted, [CvrChange%], 1)
-    VAR nSpend = baseSpend * sMult
-    VAR nCpm = baseCPM * cpmMult
-    VAR nImpressions = DIVIDE(nSpend, nCpm) * 1000
-    VAR adjCTR = MIN(1, MAX(0, baseCTR * ctrMult))
-    VAR adjCVR = MIN(1, MAX(0, baseCVR * cvrMult))
-    VAR nClicks = nImpressions * adjCTR
-    VAR elasticity = SELECTEDVALUE('Purchase Elasticity'[Purchase Elasticity], 1)
-    VAR growth = DIVIDE( nSpend, baseSpend, BLANK() )
-    VAR mech = nClicks * adjCVR
-
-    RETURN 
-    IF(ISBLANK(growth), mech, mech * POWER(growth, elasticity))
-)
-```
-🛠️ **How it's built:**
-- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
-- Recompute KPI using adjusted parameter(s) to form scenario
-- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
-
-## 20) nCPMText
- 👉 **What it answers:**
-- Readable badge ▲▼ for CPM change
-- Tooltip explanations
-
-👉 **Why it matters:** Readable ▲/▼ label for scenario CPM change vs baseline.
-
-**View DAX**
-```dax
-VAR diff = IF([7D-CPM] <> 0, ([nCPM] - [7D-CPM])/[7D-CPM], 0)
+VAR diff = IF([7D-ROAS] <> 0, ([nROAS] - [7D-ROAS])/[7D-ROAS], 0)
 VAR roundDiff = (ROUND(diff, 2)) * 100
 VAR eps = 0.0005
 
@@ -615,9 +718,11 @@ SWITCH(
     "-"
 )
 ```
-🛠️ **How it's built:**
-- Disconnected parameter table → `SELECTEDVALUE('Param'[Value], default)`
-- Recompute KPI using adjusted parameter(s) to form scenario
-- For `*Text` measures: compare scenario vs baseline and build ▲/▼ strings
 
-👉 **Measures with similar DAX (different base):** nAOVText, nCTRText, nClicksText, nImpressionsText, nPurchasesText, nROASText, nRevenueText, nSpendText
+🛠️ **How it's built:**
+
+- Calculated over current filter context
+- Uses base ROAS (`DIVIDE([TotalRevenue],[TotalSpend])`) within the relevant period/grain
+- Depends on: 7D-ROAS, nROAS
+
+👉 **Name of measures with similar DAX but different base:** nAOVText, nCPMText, nCTRText, nClicksText, nImpressionsText, nPurchasesText, nRevenueText, nSpendText
