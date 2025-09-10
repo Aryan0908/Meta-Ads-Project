@@ -43,12 +43,20 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ![alt text](/images/main_dashboard.png)
 </details>
 
+- **👉 Significance**:
+	- Top-level health check (Spend/Revenue/Profit-Loss/Purchases) and objective mix.
+	- Quick revenue of revenue trend and budget alocation
+
 ### Conversion
 <details>
 <summary> <b>🖼️ View Image</b> </summary>
 
 ![alt text](/images/conversion_dashboard.png)
 </details>
+
+- **👉 Significance**:
+	- Monthly conversion overview (Spend, Revenue, ROAS, Purchases, Cost-per-Purchase) with funnel drop-offs.
+	- Different metrics breakdown according to dynamic segments
 
 ### Conversion Details
 <details>
@@ -57,12 +65,21 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ![alt text](/images/conversionDetails_dashboard.png)
 </details>
 
+- **👉 Significance**:
+	- Diagnostic grid with heat-mapped KPIs across Campaign → Adset → Creative.
+	- Helps in getting an in-depth view of each level.
+
 ### Adset Analysis (Drillthrough)
 <details>
 <summary> <b>🖼️ View Image</b> </summary>
 
 ![alt text](/images/adset_dashboard.png)
 </details>
+
+- **👉 Significance**:
+	- Evaluates audience/targeting with revenue, spend, and 7-day rolling ROAS.
+	- Highlights stats of best and worst week.
+	- Surfaces high-return adsets for reallocation and links to the creatives driving performance.
 
 ### Creative Analysis (Drillthrough)
 <details>
@@ -71,6 +88,9 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ![alt text](/images/creative_dashboard.png)
 </details>
 
+- **👉 Significance**:
+	- Identifies winning/flagging creatives via ROAS, CTR/CPC trends, fatigue signals, and best/worst weeks.
+
 ### What-if Analysis (Page 1)
 <details>
 <summary> <b>🖼️ View Image</b> </summary>
@@ -78,12 +98,19 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
  ![alt text](/images/whatif1_dashboard.png)
 </details>
 
+- **👉 Significance**:
+	- Executive scenario overview with baseline vs simulated trend and a revenue waterfall (Spend→CPM→CTR→CVR→AOV)
+	- Explains why numbers move so stakeholders can decide fast.
+
 ### What-if Analysis (Page 2)
 <details>
 <summary> <b>🖼️ View Image</b> </summary>
 
  ![alt text](/images/whatif2_dashboard.png)
 </details>
+
+- **👉 Significance**:
+	- Quantifies impact by Campaign → Adset → Creative so you know exactly where to shift budget or refresh creatives.
 
 
 ---
