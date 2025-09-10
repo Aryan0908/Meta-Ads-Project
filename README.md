@@ -35,9 +35,9 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ---
 
 ## 🔹 Dashboard Pages
-*(Add screenshots from your repo's images folder)*
 
 - Main Dashboard
+![alt text](/images/main_dashboard.png)
 - Conversion  
 - Conversion Details  
 - Adset Analysis  
