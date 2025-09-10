@@ -37,13 +37,23 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 ## 🔹 Dashboard Pages
 
 - Main Dashboard
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
 ![alt text](/images/main_dashboard.png)
-- Conversion  
-- Conversion Details  
-- Adset Analysis  
-- Creative Analysis  
-- What-if Analysis (Page 1)  
-- What-if Analysis (Page 2)  
+</details>
+
+- Conversion
+![alt text](/images/conversion_dashboard.png)
+- Conversion Details
+![alt text](/images/conversionDetails_dashboard.png)
+- Adset Analysis
+![alt text](/images/adset_dashboard.png)
+- Creative Analysis
+![alt text](/images/creative_dashboard.png)
+- What-if Analysis (Page 1)
+ ![alt text](/images/whatif1_dashboard.png)
+- What-if Analysis (Page 2)
+ ![alt text](/images/whatif2_dashboard.png)
 
 ---
 
