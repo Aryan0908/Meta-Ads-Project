@@ -39,6 +39,7 @@ I built an end-to-end analytics pipeline on a Meta Ads dataset (Campaigns → Ad
 - Main Dashboard
 <details>
 <summary> <b>🖼️ View Image</b> </summary>
+
 ![alt text](/images/main_dashboard.png)
 </details>
 
