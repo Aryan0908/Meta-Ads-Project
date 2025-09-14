@@ -1,5 +1,16 @@
 # POWER BI - DAX + Table Relationships
 
+End-to-end Power BI model on Meta Ads data with scenario planning, rolling metrics, and drillthrough.  
+This guide explains the **data model & relationships**, and **each page’s sections/charts/slicers + use cases**.
+## 📦 Data Model (Star Schema)
+
+```mermaid
+erDiagram
+  Campaigns ||--o{ Adsets : "campaign_id"
+  Adsets   ||--o{ Ads    : "adset_id"
+  Ads      ||--o{ Performance : "ad_id"
+  Date     ||--o{ Performance : "date"}
+```
 ## 1) Roas
 
 👉 **What it answers:**
