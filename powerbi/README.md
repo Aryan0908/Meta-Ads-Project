@@ -12,7 +12,7 @@ erDiagram
   Ads      ||--o{ Performance : ad_id
   Date     ||--o{ Performance : date
 
-  Campaigns (Dimensions) {
+  Campaigns(Dimensions) {
     string Campaign_Id PK
     string Objective
     string Campaign_Name
