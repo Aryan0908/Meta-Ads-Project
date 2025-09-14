@@ -1,0 +1,205 @@
+ad_id,adset_id,ad_format,creative_name,headline,description,asset_url,video_length_sec,is_dynamic_creative,call_to_action
+AD00001,ADS0001,image,Creative_AD00001,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,,False,SHOP_NOW
+AD00002,ADS0001,video,Creative_AD00002,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,63.0,False,SHOP_NOW
+AD00003,ADS0001,video,Creative_AD00003,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,118.0,False,SHOP_NOW
+AD00004,ADS0002,image,Creative_AD00004,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,,False,SHOP_NOW
+AD00005,ADS0002,video,Creative_AD00005,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,75.0,True,SHOP_NOW
+AD00006,ADS0002,carousel,Creative_AD00006,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,,False,SHOP_NOW
+AD00007,ADS0003,carousel,Creative_AD00007,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,,False,SHOP_NOW
+AD00008,ADS0003,carousel,Creative_AD00008,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,,False,SHOP_NOW
+AD00009,ADS0003,video,Creative_AD00009,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,20.0,False,SHOP_NOW
+AD00010,ADS0004,carousel,Creative_AD00010,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SHOP_NOW
+AD00011,ADS0004,video,Creative_AD00011,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,117.0,False,SHOP_NOW
+AD00012,ADS0004,carousel,Creative_AD00012,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SHOP_NOW
+AD00013,ADS0005,image,Creative_AD00013,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,True,NO_BUTTON
+AD00014,ADS0005,carousel,Creative_AD00014,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,True,NO_BUTTON
+AD00015,ADS0005,video,Creative_AD00015,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,90.0,True,NO_BUTTON
+AD00016,ADS0006,carousel,Creative_AD00016,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00017,ADS0006,image,Creative_AD00017,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00018,ADS0006,carousel,Creative_AD00018,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,True,NO_BUTTON
+AD00019,ADS0007,image,Creative_AD00019,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,True,NO_BUTTON
+AD00020,ADS0007,video,Creative_AD00020,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,76.0,False,NO_BUTTON
+AD00021,ADS0007,video,Creative_AD00021,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,98.0,True,NO_BUTTON
+AD00022,ADS0008,video,Creative_AD00022,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,76.0,False,NO_BUTTON
+AD00023,ADS0008,image,Creative_AD00023,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00024,ADS0008,carousel,Creative_AD00024,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00025,ADS0009,image,Creative_AD00025,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00026,ADS0009,carousel,Creative_AD00026,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00027,ADS0009,video,Creative_AD00027,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,18.0,False,NO_BUTTON
+AD00028,ADS0010,video,Creative_AD00028,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,20.0,True,NO_BUTTON
+AD00029,ADS0010,image,Creative_AD00029,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00030,ADS0010,image,Creative_AD00030,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00031,ADS0011,image,Creative_AD00031,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00032,ADS0011,image,Creative_AD00032,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00033,ADS0011,image,Creative_AD00033,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,True,NO_BUTTON
+AD00034,ADS0012,carousel,Creative_AD00034,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00035,ADS0012,carousel,Creative_AD00035,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00036,ADS0012,video,Creative_AD00036,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,89.0,False,NO_BUTTON
+AD00037,ADS0013,carousel,Creative_AD00037,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00038,ADS0013,carousel,Creative_AD00038,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00039,ADS0013,video,Creative_AD00039,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,101.0,False,NO_BUTTON
+AD00040,ADS0014,video,Creative_AD00040,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,26.0,False,NO_BUTTON
+AD00041,ADS0014,video,Creative_AD00041,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,27.0,False,NO_BUTTON
+AD00042,ADS0014,image,Creative_AD00042,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,True,NO_BUTTON
+AD00043,ADS0015,image,Creative_AD00043,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00044,ADS0015,carousel,Creative_AD00044,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00045,ADS0015,image,Creative_AD00045,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00046,ADS0016,video,Creative_AD00046,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,114.0,False,SHOP_NOW
+AD00047,ADS0016,video,Creative_AD00047,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,59.0,False,SHOP_NOW
+AD00048,ADS0016,image,Creative_AD00048,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,,True,SHOP_NOW
+AD00049,ADS0017,image,Creative_AD00049,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,,False,SHOP_NOW
+AD00050,ADS0017,image,Creative_AD00050,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,,True,SHOP_NOW
+AD00051,ADS0017,image,Creative_AD00051,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SHOP_NOW
+AD00052,ADS0018,video,Creative_AD00052,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,46.0,False,SHOP_NOW
+AD00053,ADS0018,carousel,Creative_AD00053,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,,False,SHOP_NOW
+AD00054,ADS0018,video,Creative_AD00054,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,58.0,False,SHOP_NOW
+AD00055,ADS0019,carousel,Creative_AD00055,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,,False,SHOP_NOW
+AD00056,ADS0019,image,Creative_AD00056,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,,False,SHOP_NOW
+AD00057,ADS0019,video,Creative_AD00057,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,32.0,False,SHOP_NOW
+AD00058,ADS0020,video,Creative_AD00058,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_pulpitrock.jpg,97.0,False,SHOP_NOW
+AD00059,ADS0020,video,Creative_AD00059,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_pulpitrock.jpg,36.0,False,SHOP_NOW
+AD00060,ADS0020,image,Creative_AD00060,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,,False,SHOP_NOW
+AD00061,ADS0021,carousel,Creative_AD00061,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,,False,SHOP_NOW
+AD00062,ADS0021,video,Creative_AD00062,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,70.0,False,SHOP_NOW
+AD00063,ADS0021,image,Creative_AD00063,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,,False,SHOP_NOW
+AD00064,ADS0022,video,Creative_AD00064,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,73.0,False,SHOP_NOW
+AD00065,ADS0022,image,Creative_AD00065,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,,False,SHOP_NOW
+AD00066,ADS0022,video,Creative_AD00066,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_snow.jpg,42.0,False,SHOP_NOW
+AD00067,ADS0023,image,Creative_AD00067,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,,False,SHOP_NOW
+AD00068,ADS0023,video,Creative_AD00068,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,49.0,False,SHOP_NOW
+AD00069,ADS0023,video,Creative_AD00069,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,75.0,False,SHOP_NOW
+AD00070,ADS0024,carousel,Creative_AD00070,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,,False,SHOP_NOW
+AD00071,ADS0024,carousel,Creative_AD00071,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,,True,SHOP_NOW
+AD00072,ADS0024,carousel,Creative_AD00072,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SHOP_NOW
+AD00073,ADS0025,image,Creative_AD00073,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,,True,SHOP_NOW
+AD00074,ADS0025,image,Creative_AD00074,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_lights.jpg,,False,SHOP_NOW
+AD00075,ADS0025,carousel,Creative_AD00075,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,,False,SHOP_NOW
+AD00076,ADS0026,video,Creative_AD00076,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,90.0,False,SHOP_NOW
+AD00077,ADS0026,video,Creative_AD00077,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_chania.jpg,63.0,False,SHOP_NOW
+AD00078,ADS0026,video,Creative_AD00078,Shop Now and Save,"Exclusive offer, only available today!",https://www.w3schools.com/html/img_5terre.jpg,108.0,False,SHOP_NOW
+AD00079,ADS0027,image,Creative_AD00079,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SIGN_UP
+AD00080,ADS0027,carousel,Creative_AD00080,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,,False,SIGN_UP
+AD00081,ADS0027,video,Creative_AD00081,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,72.0,False,SIGN_UP
+AD00082,ADS0028,image,Creative_AD00082,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,,True,SIGN_UP
+AD00083,ADS0028,carousel,Creative_AD00083,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,,True,SIGN_UP
+AD00084,ADS0028,image,Creative_AD00084,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,,False,SIGN_UP
+AD00085,ADS0029,video,Creative_AD00085,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,51.0,False,SIGN_UP
+AD00086,ADS0029,video,Creative_AD00086,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,18.0,False,SIGN_UP
+AD00087,ADS0029,carousel,Creative_AD00087,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,,False,SIGN_UP
+AD00088,ADS0030,carousel,Creative_AD00088,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,,False,SIGN_UP
+AD00089,ADS0030,video,Creative_AD00089,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,74.0,False,SIGN_UP
+AD00090,ADS0030,carousel,Creative_AD00090,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,,False,SIGN_UP
+AD00091,ADS0031,video,Creative_AD00091,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,64.0,False,SIGN_UP
+AD00092,ADS0031,image,Creative_AD00092,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_chania.jpg,,False,SIGN_UP
+AD00093,ADS0031,video,Creative_AD00093,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,65.0,False,SIGN_UP
+AD00094,ADS0032,carousel,Creative_AD00094,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SIGN_UP
+AD00095,ADS0032,video,Creative_AD00095,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,119.0,True,SIGN_UP
+AD00096,ADS0032,image,Creative_AD00096,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,,False,SIGN_UP
+AD00097,ADS0033,image,Creative_AD00097,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,,False,SIGN_UP
+AD00098,ADS0033,video,Creative_AD00098,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,114.0,False,SIGN_UP
+AD00099,ADS0033,video,Creative_AD00099,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,80.0,True,SIGN_UP
+AD00100,ADS0034,carousel,Creative_AD00100,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00101,ADS0034,carousel,Creative_AD00101,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,True,NO_BUTTON
+AD00102,ADS0034,video,Creative_AD00102,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,50.0,True,NO_BUTTON
+AD00103,ADS0035,image,Creative_AD00103,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00104,ADS0035,image,Creative_AD00104,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00105,ADS0035,carousel,Creative_AD00105,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00106,ADS0036,video,Creative_AD00106,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,72.0,False,NO_BUTTON
+AD00107,ADS0036,image,Creative_AD00107,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00108,ADS0036,video,Creative_AD00108,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,17.0,False,NO_BUTTON
+AD00109,ADS0037,video,Creative_AD00109,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,32.0,True,NO_BUTTON
+AD00110,ADS0037,image,Creative_AD00110,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00111,ADS0037,image,Creative_AD00111,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00112,ADS0038,video,Creative_AD00112,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,29.0,False,NO_BUTTON
+AD00113,ADS0038,image,Creative_AD00113,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00114,ADS0038,video,Creative_AD00114,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,113.0,False,NO_BUTTON
+AD00115,ADS0039,image,Creative_AD00115,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,True,NO_BUTTON
+AD00116,ADS0039,video,Creative_AD00116,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,22.0,False,NO_BUTTON
+AD00117,ADS0039,carousel,Creative_AD00117,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00118,ADS0040,image,Creative_AD00118,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,True,NO_BUTTON
+AD00119,ADS0040,video,Creative_AD00119,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,101.0,False,NO_BUTTON
+AD00120,ADS0040,image,Creative_AD00120,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00121,ADS0041,video,Creative_AD00121,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,58.0,True,NO_BUTTON
+AD00122,ADS0041,carousel,Creative_AD00122,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00123,ADS0041,carousel,Creative_AD00123,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00124,ADS0042,video,Creative_AD00124,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,16.0,True,NO_BUTTON
+AD00125,ADS0042,image,Creative_AD00125,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00126,ADS0042,video,Creative_AD00126,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,83.0,False,NO_BUTTON
+AD00127,ADS0043,carousel,Creative_AD00127,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00128,ADS0043,video,Creative_AD00128,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,55.0,True,NO_BUTTON
+AD00129,ADS0043,video,Creative_AD00129,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,76.0,True,NO_BUTTON
+AD00130,ADS0044,carousel,Creative_AD00130,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00131,ADS0044,image,Creative_AD00131,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00132,ADS0044,video,Creative_AD00132,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,117.0,False,NO_BUTTON
+AD00133,ADS0045,carousel,Creative_AD00133,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00134,ADS0045,carousel,Creative_AD00134,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00135,ADS0045,image,Creative_AD00135,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,True,NO_BUTTON
+AD00136,ADS0046,image,Creative_AD00136,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00137,ADS0046,image,Creative_AD00137,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00138,ADS0046,image,Creative_AD00138,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00139,ADS0047,carousel,Creative_AD00139,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,,False,SIGN_UP
+AD00140,ADS0047,image,Creative_AD00140,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_chania.jpg,,False,SIGN_UP
+AD00141,ADS0047,carousel,Creative_AD00141,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_chania.jpg,,False,SIGN_UP
+AD00142,ADS0048,carousel,Creative_AD00142,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,,False,SIGN_UP
+AD00143,ADS0048,carousel,Creative_AD00143,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,,False,SIGN_UP
+AD00144,ADS0048,carousel,Creative_AD00144,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SIGN_UP
+AD00145,ADS0049,carousel,Creative_AD00145,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,,False,SIGN_UP
+AD00146,ADS0049,video,Creative_AD00146,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,54.0,False,SIGN_UP
+AD00147,ADS0049,image,Creative_AD00147,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,,True,SIGN_UP
+AD00148,ADS0050,carousel,Creative_AD00148,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,,False,SIGN_UP
+AD00149,ADS0050,video,Creative_AD00149,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,50.0,True,SIGN_UP
+AD00150,ADS0050,carousel,Creative_AD00150,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_snow.jpg,,False,SIGN_UP
+AD00151,ADS0051,carousel,Creative_AD00151,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_lights.jpg,,False,SIGN_UP
+AD00152,ADS0051,image,Creative_AD00152,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_5terre.jpg,,False,SIGN_UP
+AD00153,ADS0051,image,Creative_AD00153,Get a Free Quote,Sign up and get access to premium services,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,SIGN_UP
+AD00154,ADS0052,video,Creative_AD00154,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,25.0,True,NO_BUTTON
+AD00155,ADS0052,video,Creative_AD00155,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,24.0,False,NO_BUTTON
+AD00156,ADS0052,image,Creative_AD00156,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00157,ADS0053,image,Creative_AD00157,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00158,ADS0053,image,Creative_AD00158,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00159,ADS0053,carousel,Creative_AD00159,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00160,ADS0054,carousel,Creative_AD00160,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00161,ADS0054,image,Creative_AD00161,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,True,NO_BUTTON
+AD00162,ADS0054,carousel,Creative_AD00162,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,True,NO_BUTTON
+AD00163,ADS0055,image,Creative_AD00163,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00164,ADS0055,carousel,Creative_AD00164,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00165,ADS0055,carousel,Creative_AD00165,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00166,ADS0056,carousel,Creative_AD00166,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00167,ADS0056,image,Creative_AD00167,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,False,NO_BUTTON
+AD00168,ADS0056,carousel,Creative_AD00168,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00169,ADS0057,image,Creative_AD00169,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,,True,NO_BUTTON
+AD00170,ADS0057,image,Creative_AD00170,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00171,ADS0057,video,Creative_AD00171,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,15.0,False,NO_BUTTON
+AD00172,ADS0058,image,Creative_AD00172,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00173,ADS0058,video,Creative_AD00173,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_snow.jpg,78.0,False,NO_BUTTON
+AD00174,ADS0058,video,Creative_AD00174,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,98.0,False,NO_BUTTON
+AD00175,ADS0059,video,Creative_AD00175,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,42.0,False,NO_BUTTON
+AD00176,ADS0059,carousel,Creative_AD00176,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00177,ADS0059,carousel,Creative_AD00177,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00178,ADS0060,carousel,Creative_AD00178,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00179,ADS0060,carousel,Creative_AD00179,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_pulpitrock.jpg,,False,NO_BUTTON
+AD00180,ADS0060,carousel,Creative_AD00180,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,,False,NO_BUTTON
+AD00181,ADS0061,video,Creative_AD00181,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,63.0,False,NO_BUTTON
+AD00182,ADS0061,carousel,Creative_AD00182,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00183,ADS0061,video,Creative_AD00183,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,70.0,False,NO_BUTTON
+AD00184,ADS0062,carousel,Creative_AD00184,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00185,ADS0062,image,Creative_AD00185,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00186,ADS0062,video,Creative_AD00186,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,20.0,True,NO_BUTTON
+AD00187,ADS0063,carousel,Creative_AD00187,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00188,ADS0063,image,Creative_AD00188,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00189,ADS0063,image,Creative_AD00189,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_lights.jpg,,False,NO_BUTTON
+AD00190,ADS0064,video,Creative_AD00190,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,16.0,False,NO_BUTTON
+AD00191,ADS0064,image,Creative_AD00191,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_5terre.jpg,,False,NO_BUTTON
+AD00192,ADS0064,video,Creative_AD00192,Amazing Offer,See why customers love us!,https://www.w3schools.com/html/img_chania.jpg,51.0,False,NO_BUTTON
+AD00193,ADS0065,carousel,Creative_AD00193,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_chania.jpg,,True,LEARN_MORE
+AD00194,ADS0065,video,Creative_AD00194,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_chania.jpg,40.0,True,LEARN_MORE
+AD00195,ADS0065,video,Creative_AD00195,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_snow.jpg,43.0,False,LEARN_MORE
+AD00196,ADS0066,carousel,Creative_AD00196,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_chania.jpg,,False,LEARN_MORE
+AD00197,ADS0066,video,Creative_AD00197,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_snow.jpg,49.0,False,LEARN_MORE
+AD00198,ADS0066,carousel,Creative_AD00198,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_lights.jpg,,False,LEARN_MORE
+AD00199,ADS0067,image,Creative_AD00199,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_5terre.jpg,,False,LEARN_MORE
+AD00200,ADS0067,video,Creative_AD00200,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_5terre.jpg,73.0,False,LEARN_MORE
+AD00201,ADS0067,carousel,Creative_AD00201,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_5terre.jpg,,True,LEARN_MORE
+AD00202,ADS0068,video,Creative_AD00202,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_5terre.jpg,47.0,False,LEARN_MORE
+AD00203,ADS0068,carousel,Creative_AD00203,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_5terre.jpg,,False,LEARN_MORE
+AD00204,ADS0068,video,Creative_AD00204,Learn More Today,Discover more about our product!,https://www.w3schools.com/html/img_5terre.jpg,92.0,False,LEARN_MORE

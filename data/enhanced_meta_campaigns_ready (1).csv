@@ -1,0 +1,14 @@
+campaign_id,campaign_name,objective,status,spend_cap,start_date,end_date,daily_budget,special_ad_category
+CMP001,Campaign_1,conversions,ACTIVE,38333.0,2024-01-27,2024-05-05,1869,
+CMP002,Campaign_2,reach,PAUSED,,2024-01-31,2024-05-18,1064,
+CMP003,Campaign_3,engagement,ACTIVE,20311.0,2024-01-10,2024-02-26,1397,
+CMP004,Campaign_4,conversions,ACTIVE,20051.0,2024-01-28,2024-05-02,1863,
+CMP005,Campaign_5,conversions,ACTIVE,21420.0,2024-01-28,2024-03-19,591,
+CMP006,Campaign_6,leads,ACTIVE,32568.0,2024-01-16,2024-03-21,1890,
+CMP007,Campaign_7,reach,ACTIVE,35939.0,2024-01-15,2024-05-11,1455,EMPLOYMENT
+CMP008,Campaign_8,engagement,PAUSED,,2024-01-30,2024-04-22,1978,
+CMP009,Campaign_9,engagement,ACTIVE,43693.0,2024-01-30,2024-04-01,1951,
+CMP010,Campaign_10,leads,ACTIVE,21396.0,2024-01-15,2024-03-03,1008,
+CMP011,Campaign_11,reach,ACTIVE,44419.0,2024-01-30,2024-05-13,1275,
+CMP012,Campaign_12,reach,PAUSED,,2024-01-19,2024-03-17,534,
+CMP013,Campaign_13,traffic,PAUSED,,2024-01-12,2024-03-05,705,
