@@ -12,16 +12,16 @@ erDiagram
   Date     ||--o{ Performance : date
 
   Campaigns {
-    string Campaign Id PK
+    string Campaign_Id PK
     string Objective
-    string Campaign Name
-    string Daily Budget
+    string Campaign_Name
+    string Daily_Budget
     string Status
   }
   Adsets {
-    string Adset ID PK
-    string Campaign ID FK
-    string Age Range
+    string Adset_ID PK
+    string Campaign_ID FK
+    string Age_Range
     string Placement
     string Country
     string Device
@@ -29,26 +29,26 @@ erDiagram
     string Gender
   }
   Ads {
-    string Ad ID PK
-    string Adset ID FK
-    string Call to Action
-    string Creative Name
+    string Ad_ID PK
+    string Adset_ID FK
+    string Call-to-Action
+    string Creative_Name
     string Description
-    string Dynamic Creative
+    string Dynamic_Creative
     string Headline
   }
   Performance {
-    string Ad ID FK
+    string Ad_ID FK
     date   Date
-    number Impressions|
+    number Impressions
     number Reach
     number Clicks
     number CPC
     number CTR
     number CPM
-    number View Content
+    number View_Content
     number Add-to-Cart
-    number Initiate Checkout
+    number Initiate_Checkout
     number Purchases
     number Cost
     number Revenue
