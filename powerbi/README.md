@@ -4,6 +4,7 @@ End-to-end Power BI model on Meta Ads data with scenario planning, rolling metri
 This guide explains the **data model & relationships**, and **each page’s sections/charts/slicers + use cases**.
 ## 📦 Data Model (Star Schema)
 
+```mermaid
 erDiagram
   Campaigns ||--o{ Adsets : campaign_id
   Adsets   ||--o{ Ads : adset_id
