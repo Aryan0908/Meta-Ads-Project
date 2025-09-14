@@ -2,6 +2,7 @@
 
 End-to-end Power BI model on Meta Ads data with scenario planning, rolling metrics, and drillthrough.  
 This guide explains the **data model & relationships**, and **each page’s sections/charts/slicers + use cases**.
+
 ## 📦 Data Model (Star Schema)
 
 ```mermaid
@@ -54,6 +55,14 @@ erDiagram
     number Revenue
   }
 ```
+
+## Tables and Roles
+
+  - Campaigns (Dimension Table)
+  - Adsets (Dimension Table)
+  - Ads (Dimension Table)
+  - Date (Dimension Table)
+  - Performance (Fact Table)
 
 ## 1) Roas
 
