@@ -4,7 +4,7 @@
 
 Badges: `Power BI` · `PostgreSQL` · `Status: Complete`
 
-[Live Demo](https://app.powerbi.com/view?r=eyJrIjoiYzM4MTdiZmUtOTE3MS00ODg4LTljMGItMmI2MTdiN2U1NDJkIiwidCI6IjhhZWE1ZGI4LTkxMWItNGUwYi1hMzY0LWU0YTY1YTAzNTE0MyJ9) · [Download .pbix](/powerbi/meta_ads_analysis.pbix)
+[Live Demo](https://app.powerbi.com/view?r=eyJrIjoiYzM4MTdiZmUtOTE3MS00ODg4LTljMGItMmI2MTdiN2U1NDJkIiwidCI6IjhhZWE1ZGI4LTkxMWItNGUwYi1hMzY0LWU0YTY1YTAzNTE0MyJ9) · [Download .pbix](powerbi/meta_ads_analysis.pbix)
 
 ---
 
