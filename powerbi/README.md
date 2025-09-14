@@ -12,7 +12,7 @@ erDiagram
   Ads      ||--o{ Performance : ad_id
   Date     ||--o{ Performance : date
 
-  Campaigns(Dimensions) {
+  Campaigns {
     string Campaign_Id PK
     string Objective
     string Campaign_Name
@@ -63,6 +63,10 @@ erDiagram
   - Ads (Dimension Table)
   - Date (Dimension Table)
   - Performance (Fact Table)
+
+## Relationships
+  - Campaigns (1) --> Adsets (Many) --> Ads (Many) --> Performance (Mnay)
+  - Date (1) --> Performance (Many) on date
 
 ## 1) Roas
 
