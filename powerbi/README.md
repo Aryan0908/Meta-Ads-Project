@@ -65,8 +65,16 @@ erDiagram
   - Performance (Fact Table)
 
 ## Relationships
-  - Campaigns (1) --> Adsets (Many) --> Ads (Many) --> Performance (Mnay)
+  - Campaigns (1) --> Adsets (Many) --> Ads (Many) --> Performance (Many)
   - Date (1) --> Performance (Many) on date
+
+## Global Slicers and Buttons (consistent on most pages)
+  - ***Current Slicers***: Displays current filters applied on the page
+  - ***Slicers***: Month, Device, Country, Age
+  - ***Buttons***:
+    - Page Navigation -> Helps to move on between dashboards
+    - Reset Filters -> Remove all applied filters on the current page
+    - Change Slicers (What-if Pages) -> Displays slicers to change metric values of spend, ctr, cpm, cvr and aov
 
 ## 1) Roas
 
