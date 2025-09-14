@@ -4,13 +4,37 @@ End-to-end Power BI model on Meta Ads data with scenario planning, rolling metri
 This guide explains the **data model & relationships**, and **each page’s sections/charts/slicers + use cases**.
 ## 📦 Data Model (Star Schema)
 
-```mermaid
 erDiagram
-  Campaigns ||--o{ Adsets : "campaign_id"
-  Adsets   ||--o{ Ads    : "adset_id"
-  Ads      ||--o{ Performance : "ad_id"
-  Date     ||--o{ Performance : "date"}
-```
+  Campaigns ||--o{ Adsets : campaign_id
+  Adsets   ||--o{ Ads : adset_id
+  Ads      ||--o{ Performance : ad_id
+  Date     ||--o{ Performance : date
+
+  Campaigns {
+    string campaign_id PK
+    string objective
+  }
+  Adsets {
+    string adset_id PK
+    string campaign_id FK
+    string age_range
+    string placement
+  }
+  Ads {
+    string ad_id PK
+    string adset_id FK
+    string ad_format
+  }
+  Performance {
+    string ad_id FK
+    date   date
+    number impressions
+    number clicks
+    number cost
+    number revenue
+    number purchases
+  }
+
 ## 1) Roas
 
 👉 **What it answers:**
