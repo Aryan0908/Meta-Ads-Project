@@ -35,6 +35,7 @@ erDiagram
     number revenue
     number purchases
   }
+```
 
 ## 1) Roas
 
@@ -53,7 +54,7 @@ CALCULATE(
     DIVIDE([TotalRevenue], [TotalSpend], 0),
     Campaigns[Objective] = "Conversions"
 )
-```
+
 
 🛠️ **How it's built:**
 
