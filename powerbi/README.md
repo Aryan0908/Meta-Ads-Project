@@ -100,10 +100,10 @@ erDiagram
 	- Quick revenue of revenue trend and budget alocation
 
 - **👉 Sections**:
-  - KPI + MOM Change Cards: Spend, Revenue, Profit/Loss, Purchases
-  - Line and Stacked Column  Chart: Revenue & Spend by Month/Weeks
-  - Donut Chart: Spend by Objective
-  - Campaign performance table (ROAS, 7D-ROAS, ROI WoW, CPP)
+ 	- KPI + MOM Change Cards: Spend, Revenue, Profit/Loss, Purchases
+  	- Line and Stacked Column  Chart: Revenue & Spend by Month/Weeks
+  	- Donut Chart: Spend by Objective
+  	- Campaign performance table (ROAS, 7D-ROAS, ROI WoW, CPP)
 
 ### 2) Conversion Dashboard:
 <details>
@@ -117,13 +117,27 @@ erDiagram
 	- Different metrics breakdown according to dynamic segments
 
 - **👉 Sections**:
-  - KPI + MOM Change Cards: Spend, Revenue, ROAS, Total Purchases, Cost-Per-Purchase
-  - Line Chart: Purchase By Month (Drillthrough By Date), 7-Days Rolling ROAS
-  - Line and Stacked Column  Chart: Revenue & Spend by Month/Weeks
-  - Funnel Chart: View Content -> Add-to-Cart -> Initate Checkout -> Purchases
-  - Donut Chart: ROAS/ROI/Spend by Age Range/Placement/Gender/Device
+  	- KPI + MOM Change Cards: Spend, Revenue, ROAS, Total Purchases, Cost-Per-Purchase
+  	- Line Chart: Purchase By Month (Drillthrough By Date), 7-Days Rolling ROAS
+  	- Line and Stacked Column  Chart: Revenue & Spend by Month/Weeks
+  	- Funnel Chart: View Content -> Add-to-Cart -> Initate Checkout -> Purchases
+  	- Donut Chart: ROAS/ROI/Spend by Age Range/Placement/Gender/Device
 
-### 3) Adset Analysis (Drillthrough)
+### 3) Conversion Details
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
+
+![alt text](/images/conversionDetails_dashboard.png)
+</details>
+
+- **👉 Significance**:
+	- Diagnostic grid with heat-mapped KPIs across Campaign → Adset → Creative.
+	- Helps in getting an in-depth view of each level.
+
+- **👉 Sections**:
+  	- Hierarchical table (Campaign→Adset→Creative) with Spend, Revenue, ROAS, Purchases, Cost-Per-Purchase, Clicks Conversion %, ROI WoW, 7D-ROAS, Profit/Loss, ROAS Volatility (heat-mapped).
+
+### 4) Adset Analysis (Drillthrough)
 <details>
 <summary> <b>🖼️ View Image</b> </summary>
 
@@ -136,7 +150,77 @@ erDiagram
 	- Surfaces high-return adsets for reallocation and links to the creatives driving performance.
 
 - **👉 Sections**:
-  - Hierarchical table (Campaign→Adset→Creative) with Spend, Revenue, ROAS, Purchases, Cost-Per-Purchase, Clicks Conversion %, ROI WoW, 7D-ROAS, Profit/Loss, ROAS Volatility (heat-mapped).
+  	- KPI Cards: Spend, Revenue, ROAS, ROI, Cost-Per-Purchase, Add-to-Cart CR, Click-Through-Rate, Initiate Checkout CR
+  	- Line Chart: Revenue By Month/Day, 7-Day Rolling ROAS (Weekly), Week-On-Week ROI (Weekly)
+	- Funnel Chart: View Content -> Add-to-Cart -> Initate Checkout -> Purchases
+	- Creatives table (Creative Name/Ad Format/CPM/CPC/CTR/Spend/Revenue)
+	- Multi-Row Cards: Best and Worst Week
+
+### 5) Creative Analysis (Drillthrough)
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
+
+![alt text](/images/creative_dashboard.png)
+</details>
+
+- **👉 Significance**:
+	- Identifies winning/flagging creatives via ROAS, CTR/CPC trends, fatigue signals, and best/worst weeks.
+	- Detect creative fatigue
+
+- **👉 Sections**:
+  	- KPI Cards: Spend, Revenue, Profit/Loss, ROAS, Cost-per-purchase, Click Through Rate, CPC, Checkout CR
+	- Line and Stacked Column  Chart: Purchase/Revenue & ROAS By Week
+	- Line Chart: CPC/CTR by Week
+	- Funnel Chart: View Content -> Add-to-Cart -> Initate Checkout -> Purchases
+	- Scatter Chart: Frequency & CTR by Week
+	- Multi-Row Cards: Best and Worst Week
+	- Summary Cards: Creative Performance and Funnel Drop
+
+### 6) What-if Analysis (Page 1)
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
+
+ ![alt text](/images/whatif1_dashboard.png)
+</details>
+
+- **👉 Significance**:
+	- Executive scenario overview with baseline vs simulated trend and a revenue waterfall (Spend→CPM→CTR→CVR→AOV)
+	- Explains why numbers move so stakeholders can decide fast.
+
+- **👉 Sections**:
+  	- Exclusive Slicers:
+		- Scope: Select scope of the What-if Dashboard, to which you want to apply changes (Global, Campaign, Adset)
+		- Entity ID: Specific ID to which to apply changes to
+		- Metric: All the charts will display data according to this selected metric
+  	- KPI Cards: Spend, Revenue, AOV, ROAS, Purchases
+	- Line Chart: Selected Metric By Date
+	- Donut Chart: Selected Metric By Campaign ID
+	- Clustered Bar Chart: Selected Metric By Adset ID
+	- Waterfall Chart: How revenue is getting affected by changes in Spend→CPM→CTR→CVR→AOV
+	- Summary Card
+	- Change Slicers: 
+	   	- Spend Change %, CTR Change %, CPM Change %, CVR Change %, AOV Change %
+		- 0.1 = 10%
+
+### 7) What-if Analysis (Page 2)
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
+
+ ![alt text](/images/whatif2_dashboard.png)
+</details>
+
+- **👉 Significance**:
+	- Quantifies impact by Campaign → Adset → Creative so you know exactly where to shift budget or refresh creatives.
+
+- **👉 Sections**:
+  	- Exclusive Slicers:
+		- Scope: Select scope of the What-if Dashboard, to which you want to apply changes (Global, Campaign, Adset)
+		- Entity ID: Specific ID to which to apply changes to
+	- Tables:
+		-  Hierarchical table (Campaign→Adset→Creative) with Impressions, ▲Impressions%, Clicks, ▲Clicks%, CVR, AOV, Purchase, ▲Purchases%, Revenue, ▲Revenue%, ROAS, ▲ROAS%
+	- Change Slicers: 
+	   	- Spend Change %, CTR Change %, CPM Change %, CVR Change %, AOV Change %
+		- 0.1 = 10%
 
 ## 1) Roas
 
