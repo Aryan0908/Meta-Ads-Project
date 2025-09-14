@@ -60,7 +60,7 @@ erDiagram
 
 ---
 
-## Tables and Roles
+## 🔹  Tables and Roles
 
   - Campaigns (Dimension Table)
   - Adsets (Dimension Table)
@@ -70,13 +70,13 @@ erDiagram
 
 ---
 
-## Relationships
+## 🔹  Relationships
   - Campaigns (1) --> Adsets (Many) --> Ads (Many) --> Performance (Many)
   - Date (1) --> Performance (Many) on date
 
 ---
 
-## Global Slicers and Buttons (consistent on most pages)
+## 🔹  Global Slicers and Buttons (consistent on most pages)
   - ***Current Slicers***: Displays current filters applied on the page
   - ***Slicers***: Month, Device, Country, Age
   - ***Buttons***:
@@ -85,6 +85,58 @@ erDiagram
     - Change Slicers (What-if Pages) -> Displays slicers to change metric values of spend, ctr, cpm, cvr and aov
 
 ---
+
+## 🔹 Dashboard Pages
+
+### 1) Main Dashboard:
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
+
+![alt text](/images/main_dashboard.png)
+</details>
+
+- **👉 Significance**:
+	- Top-level health check (Spend/Revenue/Profit-Loss/Purchases) and objective mix.
+	- Quick revenue of revenue trend and budget alocation
+
+- **👉 Sections**:
+  - KPI + MOM Change Cards: Spend, Revenue, Profit/Loss, Purchases
+  - Line and Stacked Column  Chart: Revenue & Spend by Month/Weeks
+  - Donut Chart: Spend by Objective
+  - Campaign performance table (ROAS, 7D-ROAS, ROI WoW, CPP)
+
+### 2) Conversion Dashboard:
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
+
+![alt text](/images/conversion_dashboard.png)
+</details>
+
+- **👉 Significance**:
+	- Monthly conversion overview (Spend, Revenue, ROAS, Purchases, Cost-per-Purchase) with funnel drop-offs.
+	- Different metrics breakdown according to dynamic segments
+
+- **👉 Sections**:
+  - KPI + MOM Change Cards: Spend, Revenue, ROAS, Total Purchases, Cost-Per-Purchase
+  - Line Chart: Purchase By Month (Drillthrough By Date), 7-Days Rolling ROAS
+  - Line and Stacked Column  Chart: Revenue & Spend by Month/Weeks
+  - Funnel Chart: View Content -> Add-to-Cart -> Initate Checkout -> Purchases
+  - Donut Chart: ROAS/ROI/Spend by Age Range/Placement/Gender/Device
+
+### 3) Adset Analysis (Drillthrough)
+<details>
+<summary> <b>🖼️ View Image</b> </summary>
+
+![alt text](/images/adset_dashboard.png)
+</details>
+
+- **👉 Significance**:
+	- Evaluates audience/targeting with revenue, spend, and 7-day rolling ROAS.
+	- Highlights stats of best and worst week.
+	- Surfaces high-return adsets for reallocation and links to the creatives driving performance.
+
+- **👉 Sections**:
+  - Hierarchical table (Campaign→Adset→Creative) with Spend, Revenue, ROAS, Purchases, Cost-Per-Purchase, Clicks Conversion %, ROI WoW, 7D-ROAS, Profit/Loss, ROAS Volatility (heat-mapped).
 
 ## 1) Roas
 
