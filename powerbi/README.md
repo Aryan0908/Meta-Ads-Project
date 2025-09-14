@@ -222,6 +222,10 @@ erDiagram
 	   	- Spend Change %, CTR Change %, CPM Change %, CVR Change %, AOV Change %
 		- 0.1 = 10%
 
+---
+
+## 🔹  DAX Measures Explained
+
 ## 1) Roas
 
 👉 **What it answers:**
