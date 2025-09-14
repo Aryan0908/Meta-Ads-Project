@@ -3,6 +3,8 @@
 End-to-end Power BI model on Meta Ads data with scenario planning, rolling metrics, and drillthrough.  
 This guide explains the **data model & relationships**, and **each page’s sections/charts/slicers + use cases**.
 
+---
+
 ## 📦 Data Model (Star Schema)
 
 ```mermaid
@@ -56,6 +58,8 @@ erDiagram
   }
 ```
 
+---
+
 ## Tables and Roles
 
   - Campaigns (Dimension Table)
@@ -64,9 +68,13 @@ erDiagram
   - Date (Dimension Table)
   - Performance (Fact Table)
 
+---
+
 ## Relationships
   - Campaigns (1) --> Adsets (Many) --> Ads (Many) --> Performance (Many)
   - Date (1) --> Performance (Many) on date
+
+---
 
 ## Global Slicers and Buttons (consistent on most pages)
   - ***Current Slicers***: Displays current filters applied on the page
@@ -75,6 +83,8 @@ erDiagram
     - Page Navigation -> Helps to move on between dashboards
     - Reset Filters -> Remove all applied filters on the current page
     - Change Slicers (What-if Pages) -> Displays slicers to change metric values of spend, ctr, cpm, cvr and aov
+
+---
 
 ## 1) Roas
 
